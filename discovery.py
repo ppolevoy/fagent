@@ -6,6 +6,9 @@ from pathlib import Path
 
 from models import ApplicationInfo
 from config import Config
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AbstractDiscoverer(ABC):
     """Абстрактный базовый класс для всех плагинов обнаружения."""
@@ -27,7 +30,7 @@ class DiscoveryManager:
 
     def _load_plugins(self):
         """Динамически загружает все плагины из директории plugins/."""
-        print(f"Loading plugins from: {Config.PLUGINS_DIR}")
+        logger.info(f"Loading plugins from: {Config.PLUGINS_DIR}")
         for file_path in Config.PLUGINS_DIR.glob("*_discoverer.py"):
             module_name = file_path.stem
             spec = importlib.util.spec_from_file_location(module_name, file_path)
@@ -38,7 +41,7 @@ class DiscoveryManager:
                 # Ищем классы, наследующиеся от AbstractDiscoverer
                 for name, obj in inspect.getmembers(module):
                     if inspect.isclass(obj) and issubclass(obj, AbstractDiscoverer) and obj is not AbstractDiscoverer:
-                        print(f"  - Loaded discoverer: {name}")
+                        logger.info(f"  - Loaded discoverer: {name}")
                         self.discoverers.append(obj())
     
     def run_discovery(self) -> List[ApplicationInfo]:
@@ -49,6 +52,6 @@ class DiscoveryManager:
                 apps = discoverer.discover()
                 all_apps.extend(apps)
             except Exception as e:
-                print(f"Error running discoverer {type(discoverer).__name__}: {e}")
+                logger.info(f"Error running discoverer {type(discoverer).__name__}: {e}")
         
         return all_apps

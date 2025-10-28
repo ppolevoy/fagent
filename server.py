@@ -1,15 +1,35 @@
 # server.py
 import json
+import socket
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import List
+from datetime import datetime
 
 from models import ApplicationInfo
 from discovery import DiscoveryManager
 from config import Config
 
+
+def get_hostname() -> str:
+    """Получает имя хоста."""
+    try:
+        return socket.gethostname()
+    except Exception:
+        return "unknown"
+
+
+def get_ip_address() -> str:
+    """Получает IP-адрес сервера."""
+    try:
+        hostname = socket.gethostname()
+        return socket.gethostbyname(hostname)
+    except Exception:
+        return "0.0.0.0"
+
+
 class AgentRequestHandler(BaseHTTPRequestHandler):
     """Обработчик HTTP-запросов."""
-    
+
     # Внедряем зависимость через атрибут класса (простой способ для примера)
     discovery_manager: DiscoveryManager = None
 
@@ -24,10 +44,19 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"status": "ok"}).encode("utf-8"))
         elif self.path == "/api/v1/apps":
             apps = self.discovery_manager.run_discovery()
+
+            # Формируем метку времени в формате YYYYMMDD_HHMMSS
+            last_update = datetime.now().strftime("%Y%m%d_%H%M%S")
+
             response_data = {
                 "server": {
-                    "name": "hostname_placeholder", # TODO: get real hostname
-                    "applications": [app.to_dict() for app in apps]
+                    "name": get_hostname(),
+                    "ip": get_ip_address(),
+                    "site-app": {
+                        "applications": [app.to_dict() for app in apps],
+                        "count": str(len(apps)),
+                        "last_update": last_update
+                    }
                 }
             }
             self._set_headers()

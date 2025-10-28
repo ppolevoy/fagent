@@ -42,11 +42,12 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
         if self.path == "/health":
             self._set_headers()
             self.wfile.write(json.dumps({"status": "ok"}).encode("utf-8"))
-        elif self.path == "/api/v1/apps":
+        #elif self.path == "/api/v1/apps":
+        elif self.path == "/app":
             apps = self.discovery_manager.run_discovery()
 
             # Формируем метку времени в формате YYYYMMDD_HHMMSS с добавлением 4 часов
-            last_update = (datetime.now() + timedelta(hours=4)).strftime("%Y%m%d_%H%M%S")
+            last_update = (datetime.now() + timedelta(hours=7)).strftime("%Y%m%d_%H%M%S")
 
             response_data = {
                 "server": {
@@ -70,10 +71,10 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
         pass
 
 def run_server(discovery_manager: DiscoveryManager):
-    """Запускает HTTP-сервер."""
+    """Создает HTTP-сервер и возвращает его экземпляр."""
     server_address = (Config.SERVER_HOST, Config.SERVER_PORT)
     # Внедряем менеджер в обработчик
     AgentRequestHandler.discovery_manager = discovery_manager
     httpd = HTTPServer(server_address, AgentRequestHandler)
     print(f"Starting server on {Config.SERVER_HOST}:{Config.SERVER_PORT}")
-    httpd.serve_forever()
+    return httpd

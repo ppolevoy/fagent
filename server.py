@@ -3,7 +3,7 @@ import json
 import socket
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from models import ApplicationInfo
 from discovery import DiscoveryManager
@@ -45,8 +45,8 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
         elif self.path == "/api/v1/apps":
             apps = self.discovery_manager.run_discovery()
 
-            # Формируем метку времени в формате YYYYMMDD_HHMMSS
-            last_update = datetime.now().strftime("%Y%m%d_%H%M%S")
+            # Формируем метку времени в формате YYYYMMDD_HHMMSS с добавлением 4 часов
+            last_update = (datetime.now() + timedelta(hours=4)).strftime("%Y%m%d_%H%M%S")
 
             response_data = {
                 "server": {

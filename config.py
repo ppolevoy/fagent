@@ -33,3 +33,11 @@ class Config:
 
     # Настройки HAProxy
     HAPROXY_SOCKET_PATH = os.getenv("HAPROXY_SOCKET_PATH", "/var/run/haproxy.sock")
+
+    # Множественные HAProxy инстансы (опционально)
+    # Формат: "name1:/path/to/socket1,name2:/path/to/socket2"
+    # Если не указано, используется HAPROXY_SOCKET_PATH как default инстанс
+    HAPROXY_INSTANCES = os.getenv("HAPROXY_INSTANCES", None)
+
+    # Таймаут для операций с HAProxy (секунды)
+    HAPROXY_TIMEOUT = float(os.getenv("HAPROXY_TIMEOUT", "5.0"))

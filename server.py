@@ -1,18 +1,14 @@
 # server.py
 import json
 import socket
-import urllib.parse
-import logging
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from typing import List, Dict, Any
+from typing import List
 from datetime import datetime, timedelta
 
 from models import ApplicationInfo
 from discovery import DiscoveryManager
 from config import Config
 from control_manager import ControlManager
-
-logger = logging.getLogger(__name__)
 
 def get_hostname() -> str:
     """Получает имя хоста."""
@@ -61,7 +57,7 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"status": "ok"}).encode("utf-8"))
             return
 
-        #elif self.path == "/api/v1/apps":
+        #if parts == ['api', 'v1', 'apps']: TODO refactor
         elif self.path == "/app":
             apps = self.discovery_manager.run_discovery()
 
@@ -82,130 +78,57 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write(json.dumps(response_data, indent=4).encode("utf-8"))
             return
-
-        # Обработка HAProxy API GET запросов
-        # URL: /api/v1/haproxy/...
-        if len(parts) >= 3 and parts[0:2] == ['api', 'v1']:
-            controller_name = parts[2]
-
-            # Проверяем, это haproxy контроллер
-            if controller_name == 'haproxy':
-                controller = self.control_manager.get_controller('haproxy')
-
-                if not controller:
-                    self._send_error_response(503, "HAProxy controller not available")
-                    return
-
-                try:
-                    # Извлекаем путь после /api/v1/haproxy/
-                    haproxy_path = parts[3:]
-
-                    # Парсим query параметры
-                    parsed_url = urllib.parse.urlparse(self.path)
-                    query_params = dict(urllib.parse.parse_qsl(parsed_url.query))
-
-                    # Вызываем handle_get контроллера
-                    result = controller.handle_get(haproxy_path, query_params)
-
-                    # Отправляем ответ
-                    status_code = result.get('status_code', 200)
-                    self._set_headers(status_code)
-                    self.wfile.write(json.dumps(result, indent=2).encode("utf-8"))
-                    return
-
-                except Exception as e:
-                    logger.error(f"Ошибка обработки GET запроса к HAProxy: {e}", exc_info=True)
-                    self._send_error_response(500, f"Internal error: {str(e)}")
-                    return
-
-        # 404 для всех остальных путей
-        self._set_headers(404)
-        self.wfile.write(json.dumps({"error": "Not Found"}).encode("utf-8"))
+        
+        if parts == ['api', 'v1', 'haproxy', 'backends'] and len(parts) == 5 and parts[3] == 'servers':
+            backend_name = parts[2]
+            try:
+                servers_info = self.haproxy_controller.get_servers_info(backend_name)
+                self._set_headers()
+                self.wfile.write(json.dumps(servers_info, indent=4).encode("utf-8"))
+            except Exception as e:
+                self._send_error_response(500, str(e))
+            return
+                
+        else:
+            self._set_headers(404)
+            self.wfile.write(json.dumps({"error": "Not Found"}).encode("utf-8"))
 
 
     def do_POST(self):
         parts = self._get_url_path_parts()
+        
+        # URL будет выглядеть так: /api/v1/control/{controller_name}/...
+        if len(parts) >= 4 and parts[0:2] == ['api', 'v1', 'control']:
+            controller_name = parts[2]
+            controller = self.control_manager.get_controller(controller_name)
+            
+            if not controller:
+                self._send_error_response(404, f"Controller '{controller_name}' not found.")
+                return
 
-        # Проверяем минимальную длину пути
-        if len(parts) < 3:
-            self._send_error_response(400, "Invalid request path")
-            return
-
-        # Проверяем, что это API запрос
-        if parts[0:2] != ['api', 'v1']:
-            self._send_error_response(404, "Not Found")
-            return
-
-        controller_name = parts[2]
-
-        # Вариант 1: Новый API - прямой доступ /api/v1/haproxy/...
-        # Вариант 2: Старый API - /api/v1/control/{controller_name}/...
-        if controller_name == 'control' and len(parts) >= 4:
-            # Старый формат: /api/v1/control/{controller_name}/...
-            controller_name = parts[3]
-            action_path = parts[4:]
-        else:
-            # Новый формат: /api/v1/{controller_name}/...
-            action_path = parts[3:]
-
-        # Получаем контроллер
-        controller = self.control_manager.get_controller(controller_name)
-
-        if not controller:
-            self._send_error_response(404, f"Controller '{controller_name}' not found")
-            return
-
-        try:
-            # Читаем и парсим тело запроса
-            content_length = int(self.headers.get('Content-Length', 0))
-            if content_length > 0:
+            try:
+                action_path = parts[3:]
+                content_length = int(self.headers['Content-Length'])
                 post_data = self.rfile.read(content_length)
                 body = json.loads(post_data.decode('utf-8'))
-            else:
-                body = {}
-
-            # Вызываем handle_action контроллера
-            result = controller.handle_action(action_path, body)
-
-            # Отправляем ответ
-            status_code = result.get('status_code', 200)
-            self._set_headers(status_code)
-            self.wfile.write(json.dumps(result, indent=2).encode("utf-8"))
-
-        except json.JSONDecodeError as e:
-            logger.error(f"Ошибка парсинга JSON: {e}")
-            self._send_error_response(400, f"Invalid JSON: {str(e)}")
-
-        except Exception as e:
-            logger.error(f"Ошибка обработки POST запроса: {e}", exc_info=True)
-            self._send_error_response(500, f"Internal error: {str(e)}")    
+                
+                result = controller.handle_action(action_path, body)
+                self._set_headers(200)
+                self.wfile.write(json.dumps({"status": "success", "result": result}).encode("utf-8"))
+            except Exception as e:
+                self._send_error_response(500, str(e))
+            return    
 
     def log_message(self, format, *args):
         """Отключаем стандартный логгинг HTTP-сервера, чтобы управлять им централизованно."""
         pass
 
-def run_server(discovery_manager: DiscoveryManager, control_manager: ControlManager = None):
-    """
-    Создает HTTP-сервер и возвращает его экземпляр.
-
-    Args:
-        discovery_manager: Менеджер обнаружения приложений
-        control_manager: Менеджер контроллеров (опционально)
-    """
+def run_server(discovery_manager: DiscoveryManager):
+    """Создает HTTP-сервер и возвращает его экземпляр."""
     server_address = (Config.SERVER_HOST, Config.SERVER_PORT)
-
-    # Внедряем менеджеры в обработчик
+    # Внедряем менеджер в обработчик
     AgentRequestHandler.discovery_manager = discovery_manager
-
-    # Инициализируем control_manager если не передан
-    if control_manager is None:
-        logger.info("Инициализация ControlManager")
-        control_manager = ControlManager()
-
-    AgentRequestHandler.control_manager = control_manager
-
-    # Создаем сервер
+    
     httpd = HTTPServer(server_address, AgentRequestHandler)
-    logger.info(f"HTTP сервер создан на {Config.SERVER_HOST}:{Config.SERVER_PORT}")
-
+    print(f"Starting server on {Config.SERVER_HOST}:{Config.SERVER_PORT}")
     return httpd

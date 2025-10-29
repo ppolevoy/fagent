@@ -11,3 +11,5 @@ controllers/__pycache__/haproxy_controller.cpython-311.pyc
 plugins/__pycache__/__init__.cpython-311.pyc
 plugins/__pycache__/haproxy_client.cpython-311.pyc
 plugins/__pycache__/svc_app_discoverer.cpython-311.pyc
+multi_server_update_orchestrator.yaml
+update_multiple_instances_v1_9-latest.yaml

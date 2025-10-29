@@ -81,7 +81,189 @@ class SVCAppDiscoverer(AbstractDiscoverer):
             logger.error(f"Ошибка при получении статуса {app_name}: {e}")
         
         return "unknown", "Unknown"
-    
+
+    def _get_app_pid(self, app_name: str) -> Optional[int]:
+        """
+        Получение основного PID процесса приложения через svcs -p.
+
+        Args:
+            app_name: Имя приложения (сервиса)
+
+        Returns:
+            Optional[int]: PID основного процесса приложения или None
+        """
+        try:
+            result = subprocess.run(
+                ["svcs", "-p", "-H", app_name],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if result.returncode == 0 and result.stdout:
+                # Парсим вывод svcs -p -H
+                # Формат: STATE  STIME  CTID  [PID PROCESS_NAME]
+                # Строки с PID начинаются с пробелов
+                lines = result.stdout.strip().split('\n')
+
+                for line in lines:
+                    # Пропускаем строки заголовков (начинаются не с пробелов)
+                    if not line or not line[0].isspace():
+                        continue
+
+                    # Парсим строку с PID
+                    parts = line.strip().split()
+                    if len(parts) >= 2:
+                        try:
+                            # Первое число в строке - это PID (основной процесс)
+                            pid = int(parts[0])
+                            process_name = parts[1] if len(parts) > 1 else 'unknown'
+                            logger.debug(f"{app_name}: найден PID {pid} ({process_name})")
+                            return pid  # Возвращаем первый найденный PID
+                        except (ValueError, IndexError):
+                            logger.debug(f"Не удалось распарсить PID из строки: {line.strip()}")
+                            continue
+
+                logger.debug(f"{app_name}: не найдено запущенных процессов")
+            else:
+                logger.debug(f"Пустой ответ от svcs -p для {app_name}")
+
+        except subprocess.TimeoutExpired:
+            logger.error(f"Таймаут при получении PID для {app_name}")
+        except FileNotFoundError:
+            logger.error("Команда svcs не найдена.")
+        except Exception as e:
+            logger.error(f"Ошибка при получении PID для {app_name}: {e}")
+
+        return None
+
+    def _parse_tomcat_server_xml(self, app_name: str) -> Optional[int]:
+        """
+        Парсинг server.xml для получения HTTP порта Tomcat.
+
+        Args:
+            app_name: Имя приложения
+
+        Returns:
+            Optional[int]: HTTP порт из server.xml или None
+        """
+        # Путь к server.xml в структуре приложения
+        server_xml_path = self.app_root / app_name / "conf" / "server.xml"
+
+        if not server_xml_path.exists():
+            logger.debug(f"{app_name}: server.xml не найден по пути {server_xml_path}")
+            return None
+
+        try:
+            with open(server_xml_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # Ищем HTTP Connector с портом
+            # <Connector port="8080" protocol="HTTP/1.1" .../>
+            # Игнорируем комментарии и AJP коннекторы
+            # Удаляем XML комментарии
+            content = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL)
+
+            # Ищем HTTP/1.1 Connector (не AJP)
+            connector_pattern = r'<Connector[^>]*port=["\'](\d+)["\'][^>]*protocol=["\']HTTP'
+            match = re.search(connector_pattern, content, re.IGNORECASE)
+
+            if match:
+                port = int(match.group(1))
+                logger.debug(f"{app_name}: найден HTTP порт {port} в server.xml")
+                return port
+            else:
+                logger.debug(f"{app_name}: HTTP Connector не найден в server.xml")
+
+        except Exception as e:
+            logger.warning(f"{app_name}: ошибка при чтении server.xml: {e}")
+
+        return None
+
+    def _get_listening_ports_netstat(self) -> Dict[int, int]:
+        """
+        Получение списка всех портов в состоянии LISTEN через netstat.
+
+        Returns:
+            Dict[int, int]: Словарь {порт: pid} (pid может быть 0, если не удалось определить)
+        """
+        ports = {}
+
+        try:
+            # Solaris netstat с опцией -n для числового вывода
+            result = subprocess.run(
+                ["netstat", "-an", "-P", "tcp"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if result.returncode == 0 and result.stdout:
+                lines = result.stdout.split('\n')
+
+                for line in lines:
+                    if 'LISTEN' in line:
+                        # Формат Solaris: Local Address  Remote Address  State
+                        # Пример: *.8080  *.*  LISTEN или 0.0.0.0.8080  0.0.0.0.*  LISTEN
+                        parts = line.split()
+                        if len(parts) >= 1:
+                            local_addr = parts[0]
+                            # Извлекаем порт (последняя цифра после точки или звездочки)
+                            port_match = re.search(r'[.*](\d+)$', local_addr)
+                            if port_match:
+                                port = int(port_match.group(1))
+                                ports[port] = 0  # PID пока неизвестен
+
+                logger.debug(f"Найдено {len(ports)} портов в состоянии LISTEN")
+
+        except Exception as e:
+            logger.debug(f"Ошибка при получении портов через netstat: {e}")
+
+        return ports
+
+    def _get_app_port(self, app_name: str, pid: Optional[int]) -> Optional[int]:
+        """
+        Получение порта приложения.
+
+        Использует следующие методы в порядке приоритета:
+        1. Парсинг server.xml (для Tomcat)
+        2. Поиск через netstat (менее надежно, так как не привязан к конкретному PID)
+
+        Args:
+            app_name: Имя приложения
+            pid: PID процесса приложения
+
+        Returns:
+            Optional[int]: Порт приложения или None
+        """
+        # 1. Проверяем server.xml для Tomcat
+        port = self._parse_tomcat_server_xml(app_name)
+        if port:
+            logger.debug(f"{app_name}: порт {port} определен из server.xml")
+            return port
+
+        # 2. Используем netstat как fallback
+        # Внимание: этот метод не привязан к конкретному PID,
+        # поэтому может быть неточным если на сервере много приложений
+        logger.debug(f"{app_name}: пытаемся определить порт через netstat")
+
+        # Получаем все слушающие порты
+        listening_ports = self._get_listening_ports_netstat()
+
+        # Если нашли порты, возвращаем первый подходящий
+        # (это эвристика, в реальности нужна дополнительная логика)
+        if listening_ports:
+            # Можно попробовать найти порт, который соответствует паттерну
+            # Например, для Java приложений это обычно 8080, 8443, 9090 и т.д.
+            common_ports = [8080, 8443, 9090, 8081, 8082, 8083]
+            for common_port in common_ports:
+                if common_port in listening_ports:
+                    logger.debug(f"{app_name}: найден типичный порт {common_port} через netstat")
+                    return common_port
+
+        logger.debug(f"{app_name}: не удалось определить порт приложения")
+        return None
+
     def _find_artifact(self, app_name: str) -> Tuple[Optional[Path], Optional[str]]:
         """
         Поиск артефакта приложения (jar/war/dir).
@@ -170,24 +352,40 @@ class SVCAppDiscoverer(AbstractDiscoverer):
             return "unknown-no-match"
     
     def _get_artifact_metadata(
-        self, 
-        app_name: str, 
+        self,
+        app_name: str,
         artifact_path: Optional[Path],
-        artifact_type: Optional[str]
+        artifact_type: Optional[str],
+        pid: Optional[int] = None,
+        port: Optional[int] = None
     ) -> Dict[str, Any]:
         """
         Сбор метаданных об артефакте.
-        
+
         Args:
             app_name: Имя приложения
             artifact_path: Путь к артефакту
             artifact_type: Тип артефакта (jar/war/directory)
-            
+            pid: PID основного процесса приложения
+            port: Порт, на котором слушает приложение
+
         Returns:
             Dict[str, Any]: Словарь с метаданными
         """
         metadata = {}
-        
+
+        # PID процесса
+        if pid is not None:
+            metadata["pid"] = pid
+        else:
+            metadata["pid"] = None
+
+        # Порт приложения
+        if port is not None:
+            metadata["port"] = port
+        else:
+            metadata["port"] = None
+
         # Путь к логам
         logs_path = self.app_root / app_name / "logs"
         if logs_path.is_symlink():
@@ -264,15 +462,21 @@ class SVCAppDiscoverer(AbstractDiscoverer):
                 try:
                     # Получаем статус через svcs
                     status, start_time = self._get_app_status(name)
-                    
+
+                    # Получаем PID процесса
+                    pid = self._get_app_pid(name)
+
+                    # Получаем порт приложения
+                    port = self._get_app_port(name, pid)
+
                     # Находим артефакт
                     artifact_path, artifact_type = self._find_artifact(name)
-                    
+
                     # Извлекаем версию
                     version = self._extract_version(artifact_path)
-                    
+
                     # Собираем метаданные
-                    metadata = self._get_artifact_metadata(name, artifact_path, artifact_type)
+                    metadata = self._get_artifact_metadata(name, artifact_path, artifact_type, pid, port)
                     
                     # Создаем объект приложения
                     app_info = ApplicationInfo(

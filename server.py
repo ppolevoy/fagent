@@ -83,39 +83,44 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data, indent=4).encode("utf-8"))
             return
 
-        # Обработка HAProxy API GET запросов
-        # URL: /api/v1/haproxy/...
+        # Обработка API GET запросов для контроллеров
+        # URL: /api/v1/{controller_name}/...
         if len(parts) >= 3 and parts[0:2] == ['api', 'v1']:
             controller_name = parts[2]
 
-            # Проверяем, это haproxy контроллер
-            if controller_name == 'haproxy':
-                controller = self.control_manager.get_controller('haproxy')
+            # Получаем контроллер
+            controller = self.control_manager.get_controller(controller_name)
 
-                if not controller:
-                    self._send_error_response(503, "HAProxy controller not available")
-                    return
+            if not controller:
+                # Контроллер не найден - пропускаем дальше (будет 404)
+                pass
+            else:
+                # Проверяем, поддерживает ли контроллер GET запросы
+                if hasattr(controller, 'handle_get'):
+                    try:
+                        # Извлекаем путь после /api/v1/{controller_name}/
+                        resource_path = parts[3:]
 
-                try:
-                    # Извлекаем путь после /api/v1/haproxy/
-                    haproxy_path = parts[3:]
+                        # Парсим query параметры
+                        parsed_url = urllib.parse.urlparse(self.path)
+                        query_params = dict(urllib.parse.parse_qsl(parsed_url.query))
 
-                    # Парсим query параметры
-                    parsed_url = urllib.parse.urlparse(self.path)
-                    query_params = dict(urllib.parse.parse_qsl(parsed_url.query))
+                        # Вызываем handle_get контроллера
+                        result = controller.handle_get(resource_path, query_params)
 
-                    # Вызываем handle_get контроллера
-                    result = controller.handle_get(haproxy_path, query_params)
+                        # Отправляем ответ
+                        status_code = result.get('status_code', 200)
+                        self._set_headers(status_code)
+                        self.wfile.write(json.dumps(result, indent=2).encode("utf-8"))
+                        return
 
-                    # Отправляем ответ
-                    status_code = result.get('status_code', 200)
-                    self._set_headers(status_code)
-                    self.wfile.write(json.dumps(result, indent=2).encode("utf-8"))
-                    return
-
-                except Exception as e:
-                    logger.error(f"Ошибка обработки GET запроса к HAProxy: {e}", exc_info=True)
-                    self._send_error_response(500, f"Internal error: {str(e)}")
+                    except Exception as e:
+                        logger.error(f"Ошибка обработки GET запроса к контроллеру '{controller_name}': {e}", exc_info=True)
+                        self._send_error_response(500, f"Internal error: {str(e)}")
+                        return
+                else:
+                    # Контроллер не поддерживает GET
+                    self._send_error_response(405, f"Controller '{controller_name}' does not support GET requests")
                     return
 
         # 404 для всех остальных путей

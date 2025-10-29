@@ -1,11 +1,13 @@
 # controllers/haproxy_controller.py
 import logging
-from typing import List, Dict, Any, Optional
 import sys
+from typing import List, Dict, Any, Optional
 from pathlib import Path
 
-# Добавляем путь к plugins в sys.path для импорта
-sys.path.insert(0, str(Path(__file__).parent.parent / "plugins"))
+# Добавляем родительскую директорию в sys.path для корректных импортов
+parent_dir = Path(__file__).parent.parent
+if str(parent_dir) not in sys.path:
+    sys.path.insert(0, str(parent_dir))
 
 from control import AbstractController
 from plugins.haproxy_client import HAProxyClient, HAProxyConnectionError, HAProxyCommandError

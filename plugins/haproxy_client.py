@@ -232,7 +232,7 @@ class HAProxyClient:
             # Фильтруем серверы нужного бэкенда
             servers = []
             for entry in stats:
-                if entry.get('pxname') == backend_name and entry.get('svname') not in ['BACKEND', 'FRONTEND']:
+                if entry.get('pxname', '') == backend_name and entry.get('svname', '') not in ['BACKEND', 'FRONTEND']:
                     # Оставляем только полезные поля
                     server_info = {
                         'name': entry.get('svname', ''),
@@ -317,7 +317,7 @@ class HAProxyClient:
             servers = self.get_backend_servers(backend_name)
 
             for server in servers:
-                if server.get('name') == server_name:
+                if server.get('name', '') == server_name:
                     logger.debug(f"Сервер найден: {server}")
                     return server
 

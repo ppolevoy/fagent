@@ -1,0 +1,13 @@
+CODE_REVIEW.md
+__pycache__/config.cpython-311.pyc
+__pycache__/control_manager.cpython-311.pyc
+__pycache__/control.cpython-311.pyc
+__pycache__/discovery.cpython-311.pyc
+__pycache__/main.cpython-311.pyc
+__pycache__/models.cpython-311.pyc
+__pycache__/server.cpython-311.pyc
+controllers/__pycache__/__init__.cpython-311.pyc
+controllers/__pycache__/haproxy_controller.cpython-311.pyc
+plugins/__pycache__/__init__.cpython-311.pyc
+plugins/__pycache__/haproxy_client.cpython-311.pyc
+plugins/__pycache__/svc_app_discoverer.cpython-311.pyc

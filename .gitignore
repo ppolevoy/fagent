@@ -13,3 +13,17 @@ plugins/__pycache__/haproxy_client.cpython-311.pyc
 plugins/__pycache__/svc_app_discoverer.cpython-311.pyc
 multi_server_update_orchestrator.yaml
 update_multiple_instances_v1_9-latest.yaml
+ANSIBLE_2.8.1_COMPATIBILITY.md
+COMPATIBILITY_CHECK_SUMMARY.md
+multi_server_update_orchestrator_v2.yaml
+ROLLING_UPDATE_README.md
+PHASE1_SUMMARY.md
+update_group_tasks_v2.yaml
+HAPROXY_API_EXAMPLES.md
+HAPROXY_API.md
+HAPROXY_CONFIG_FORMAT_FIX.md
+HAPROXY_API.md
+TRANSLATE_HTTP_MESSAGES.md
+test_rolling_update.sh
+REMOVE_IPV6_SUMMARY.md
+CHANGELOG.md

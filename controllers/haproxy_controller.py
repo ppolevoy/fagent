@@ -38,7 +38,11 @@ class HAProxyController(AbstractController):
 
         Поддерживает:
         - Единичный инстанс: HAPROXY_SOCKET_PATH
-        - Множественные инстансы: HAPROXY_INSTANCES (JSON или comma-separated)
+        - Множественные инстансы: HAPROXY_INSTANCES
+          Форматы:
+          - Один адрес: "ipv4@192.168.1.1:7777" (создаст default инстанс)
+          - Несколько с именами: "name1=socket1,name2=socket2"
+          - Словарь: {"name1": "socket1", "name2": "socket2"}
         """
         logger.info("Инициализация HAProxy клиентов")
 
@@ -48,19 +52,28 @@ class HAProxyController(AbstractController):
 
             if instances_config:
                 # Поддержка множественных инстансов
-                # Формат: "name1:/path/to/socket1,name2:/path/to/socket2"
                 if isinstance(instances_config, str):
-                    for instance_def in instances_config.split(','):
-                        instance_def = instance_def.strip()
-                        if ':' in instance_def:
-                            name, socket_path = instance_def.split(':', 1)
-                            self._add_client(name.strip(), socket_path.strip())
+                    instances_config = instances_config.strip()
+
+                    # Проверяем, содержит ли '=' (формат с именами)
+                    if '=' in instances_config:
+                        # Формат: "name1=socket1,name2=socket2"
+                        for instance_def in instances_config.split(','):
+                            instance_def = instance_def.strip()
+                            if '=' in instance_def:
+                                name, socket_path = instance_def.split('=', 1)
+                                self._add_client(name.strip(), socket_path.strip())
+                    else:
+                        # Единичный адрес без имени - используем как default
+                        # Например: "ipv4@192.168.1.1:7777" или "/var/run/haproxy.sock"
+                        self._add_client('default', instances_config)
+
                 elif isinstance(instances_config, dict):
-                    # Формат словаря: {"name1": "/path/to/socket1"}
+                    # Формат словаря: {"name1": "socket1"}
                     for name, socket_path in instances_config.items():
                         self._add_client(name, socket_path)
             else:
-                # Дефолтный единичный инстанс
+                # Дефолтный единичный инстанс из HAPROXY_SOCKET_PATH
                 socket_path = Config.HAPROXY_SOCKET_PATH
                 self._add_client('default', socket_path)
 
@@ -120,14 +133,14 @@ class HAProxyController(AbstractController):
                 instance_name = list(self.clients.keys())[0]
                 return self.clients[instance_name]
             else:
-                raise ValueError("Нет доступных HAProxy инстансов")
+                raise ValueError("No HAProxy instances available")
 
         # Ищем по имени
         if instance_name not in self.clients:
             available = ', '.join(self.clients.keys())
             raise ValueError(
-                f"HAProxy инстанс '{instance_name}' не найден. "
-                f"Доступные инстансы: {available}"
+                f"HAProxy instance '{instance_name}' not found. "
+                f"Available instances: {available}"
             )
 
         return self.clients[instance_name]
@@ -157,7 +170,7 @@ class HAProxyController(AbstractController):
 
         try:
             if not path_parts:
-                return self._error_response("Путь не указан", 400)
+                return self._error_response("Path not specified", 400)
 
             # Проверяем первую часть пути
             first_part = path_parts[0]
@@ -178,7 +191,7 @@ class HAProxyController(AbstractController):
             remaining_path = path_parts[path_offset:]
 
             if not remaining_path:
-                return self._error_response("Неполный путь запроса", 400)
+                return self._error_response("Incomplete request path", 400)
 
             # /backends - список бэкендов
             if remaining_path == ['backends']:
@@ -200,7 +213,7 @@ class HAProxyController(AbstractController):
                     'count': len(servers)
                 })
 
-            return self._error_response(f"Неизвестный путь: {'/'.join(path_parts)}", 404)
+            return self._error_response(f"Unknown path: {'/'.join(path_parts)}", 404)
 
         except ValueError as e:
             logger.warning(f"Ошибка валидации: {e}")
@@ -208,11 +221,11 @@ class HAProxyController(AbstractController):
 
         except HAProxyConnectionError as e:
             logger.error(f"Ошибка подключения к HAProxy: {e}")
-            return self._error_response(f"Ошибка подключения к HAProxy: {e}", 503)
+            return self._error_response(f"HAProxy connection error: {e}", 503)
 
         except Exception as e:
             logger.error(f"Неожиданная ошибка в handle_get: {e}", exc_info=True)
-            return self._error_response(f"Внутренняя ошибка: {e}", 500)
+            return self._error_response(f"Internal error: {e}", 500)
 
     def handle_action(self, action_path: List[str], body: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -239,14 +252,14 @@ class HAProxyController(AbstractController):
         try:
             # Валидация body
             if not body or 'action' not in body:
-                return self._error_response("Поле 'action' обязательно в теле запроса", 400)
+                return self._error_response("Field 'action' is required in request body", 400)
 
             action = body['action']
 
             # Проверяем валидность action
             if action not in HAProxyClient.VALID_STATES:
                 return self._error_response(
-                    f"Невалидный action '{action}'. Допустимые: {', '.join(HAProxyClient.VALID_STATES)}",
+                    f"Invalid action '{action}'. Allowed: {', '.join(HAProxyClient.VALID_STATES)}",
                     400
                 )
 
@@ -255,7 +268,7 @@ class HAProxyController(AbstractController):
             # Формат 2: ['instance1', 'backends', 'mybackend', 'servers', 'server1', 'action']
 
             if len(action_path) < 5:
-                return self._error_response("Неполный путь запроса", 400)
+                return self._error_response("Incomplete request path", 400)
 
             # Определяем, указан ли инстанс
             if action_path[0] == 'backends':
@@ -269,11 +282,11 @@ class HAProxyController(AbstractController):
             remaining_path = action_path[path_offset:]
 
             if len(remaining_path) != 5:
-                return self._error_response("Неверная структура пути", 400)
+                return self._error_response("Invalid path structure", 400)
 
             if remaining_path[0] != 'backends' or remaining_path[2] != 'servers' or remaining_path[4] != 'action':
                 return self._error_response(
-                    "Ожидается путь: /backends/{backend}/servers/{server}/action",
+                    "Expected path: /backends/{backend}/servers/{server}/action",
                     400
                 )
 
@@ -294,9 +307,9 @@ class HAProxyController(AbstractController):
                     'server': server_name,
                     'action': action,
                     'status': 'completed'
-                }, message=f"Состояние сервера успешно изменено на '{action}'")
+                }, message=f"Server state successfully changed to '{action}'")
             else:
-                return self._error_response("Не удалось изменить состояние сервера", 500)
+                return self._error_response("Failed to change server state", 500)
 
         except ValueError as e:
             logger.warning(f"Ошибка валидации: {e}")
@@ -304,15 +317,15 @@ class HAProxyController(AbstractController):
 
         except HAProxyCommandError as e:
             logger.error(f"Ошибка выполнения команды HAProxy: {e}")
-            return self._error_response(f"Ошибка HAProxy: {e}", 502)
+            return self._error_response(f"HAProxy command error: {e}", 502)
 
         except HAProxyConnectionError as e:
             logger.error(f"Ошибка подключения к HAProxy: {e}")
-            return self._error_response(f"Ошибка подключения к HAProxy: {e}", 503)
+            return self._error_response(f"HAProxy connection error: {e}", 503)
 
         except Exception as e:
             logger.error(f"Неожиданная ошибка в handle_action: {e}", exc_info=True)
-            return self._error_response(f"Внутренняя ошибка: {e}", 500)
+            return self._error_response(f"Internal error: {e}", 500)
 
     def _success_response(
         self,

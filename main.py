@@ -1,9 +1,9 @@
+#!/usr/bin/python3.11
 import sys
 import signal
 import logging
-import socket
-import platform
 import time
+import threading
 from typing import Optional
 
 from discovery import DiscoveryManager
@@ -71,21 +71,18 @@ def setup_signal_handlers() -> None:
     """Настройка обработчиков сигналов для graceful shutdown"""
     logger = logging.getLogger(__name__)
 
-    def signal_handler(signum, frame):
-        """Обработчик сигналов SIGTERM и SIGINT"""
-        signal_names = {
-            signal.SIGTERM: "SIGTERM",
-            signal.SIGINT: "SIGINT"
-        }
-        signal_name = signal_names.get(signum, f"Signal {signum}")
+    def signal_handler(*_):
+        """Обработчик сигнала SIGTERM"""
+        logger.info(f"Received SIGTERM, beginning graceful shutdown...")
 
-        logger.info(f"Received {signal_name}, beginning graceful shutdown...")
-
-        # Останавливаем HTTP сервер
+        # Останавливаем HTTP сервер из отдельного потока
         if httpd_instance:
             logger.info("Stopping HTTP server...")
             try:
-                httpd_instance.shutdown()
+                # shutdown() нужно вызывать из отдельного потока
+                shutdown_thread = threading.Thread(target=httpd_instance.shutdown)
+                shutdown_thread.start()
+                shutdown_thread.join(timeout=5)
                 logger.info("HTTP server stopped ✓")
             except Exception as e:
                 logger.error(f"Error stopping the server: {e}")
@@ -93,9 +90,8 @@ def setup_signal_handlers() -> None:
         logger.info("The agent has been stopped successfully.")
         sys.exit(0)
 
-    # Регистрируем обработчики
+    # Регистрируем только SIGTERM, SIGINT будет обработан через KeyboardInterrupt
     signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
 
     logger.debug("Signal handlers are registered")    
 

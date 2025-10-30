@@ -27,16 +27,68 @@ HAProxy API предоставляет возможность управлени
 
 ### Единичный инстанс HAProxy
 
+#### Unix Socket (по умолчанию)
+
 ```bash
 export HAPROXY_SOCKET_PATH="/var/run/haproxy.sock"
 export HAPROXY_TIMEOUT="5.0"
 ```
 
-### Множественные инстансы HAProxy
+**Конфигурация HAProxy (haproxy.cfg):**
+```
+global
+    stats socket /var/run/haproxy.sock mode 660 level admin
+```
+
+#### TCP Socket (IPv4)
 
 ```bash
-# Формат: "name1:/path/to/socket1,name2:/path/to/socket2"
-export HAPROXY_INSTANCES="prod:/var/run/haproxy1.sock,staging:/var/run/haproxy2.sock"
+export HAPROXY_SOCKET_PATH="ipv4@192.168.1.15:7777"
+export HAPROXY_TIMEOUT="5.0"
+```
+
+**Конфигурация HAProxy (haproxy.cfg):**
+```
+global
+    stats socket ipv4@192.168.1.15:7777 level admin
+```
+
+### Множественные инстансы HAProxy
+
+#### Единичный адрес (без имени)
+
+Если указан только один адрес без имени, он будет использован как `default` инстанс:
+
+```bash
+# Unix socket
+export HAPROXY_INSTANCES="/var/run/haproxy.sock"
+
+# TCP IPv4
+export HAPROXY_INSTANCES="ipv4@192.168.1.1:7777"
+
+export HAPROXY_TIMEOUT="5.0"
+```
+
+#### Все Unix Sockets
+
+```bash
+# Формат: "name1=socket1,name2=socket2"
+export HAPROXY_INSTANCES="prod=/var/run/haproxy1.sock,staging=/var/run/haproxy2.sock"
+export HAPROXY_TIMEOUT="5.0"
+```
+
+#### Смешанная конфигурация (Unix + TCP)
+
+```bash
+# Можно комбинировать Unix и TCP sockets
+export HAPROXY_INSTANCES="prod=/var/run/haproxy-prod.sock,remote=ipv4@192.168.1.15:7777,backup=ipv4@192.168.1.16:7777"
+export HAPROXY_TIMEOUT="5.0"
+```
+
+#### Только TCP Sockets (IPv4)
+
+```bash
+export HAPROXY_INSTANCES="dc1=ipv4@10.0.1.10:7777,dc2=ipv4@10.0.2.10:7777"
 export HAPROXY_TIMEOUT="5.0"
 ```
 
@@ -218,10 +270,31 @@ curl -X POST http://localhost:11011/api/v1/haproxy/prod/backends/myapp/servers/w
 - `502` - Ошибка выполнения команды HAProxy
 - `503` - HAProxy недоступен
 
+## Поддерживаемые типы подключений
+
+HAProxy Client Plugin поддерживает три типа подключений:
+
+### 1. Unix Domain Socket
+- **Формат**: `/var/run/haproxy.sock` (обычный путь к файлу)
+- **Использование**: Локальное подключение на том же сервере
+- **Производительность**: Максимальная (без сетевого стека)
+- **Безопасность**: Контролируется правами доступа к файлу
+- **HAProxy Config**: `stats socket /var/run/haproxy.sock mode 660 level admin`
+
+### 2. TCP Socket IPv4
+- **Формат**: `ipv4@192.168.1.15:7777`
+- **Использование**: Удаленное подключение или привязка к конкретному IP
+- **Производительность**: Хорошая (небольшой overhead TCP)
+- **Безопасность**: Требует защиты firewall и/или SSL
+- **HAProxy Config**: `stats socket ipv4@192.168.1.15:7777 level admin`
+
+**Примечание**: Unix и TCP сокеты можно комбинировать в конфигурации множественных инстансов.
+
 ## Логирование
 
 Все операции логируются с указанием:
 - Типа операции (GET/POST)
+- Типа подключения (unix/tcp4)
 - Параметров запроса
 - Результата выполнения
 - Ошибок с полным stack trace
@@ -268,9 +341,77 @@ done
 
 ## Безопасность
 
-1. **Unix Socket Permissions**: Убедитесь, что процесс агента имеет права на чтение/запись HAProxy socket
-2. **Аутентификация**: Рекомендуется использовать `AGENT_SECURITY_ENABLED=true` и `AGENT_AUTH_TOKEN`
-3. **Аудит**: Все операции логируются для отслеживания изменений
+### Unix Socket
+
+1. **Права доступа**: Убедитесь, что процесс агента имеет права на чтение/запись HAProxy socket
+   ```bash
+   # Проверить права
+   ls -la /var/run/haproxy.sock
+
+   # Установить правильные права (если нужно)
+   chmod 660 /var/run/haproxy.sock
+   chown haproxy:haproxy /var/run/haproxy.sock
+   ```
+
+2. **Рекомендация**: Используйте Unix socket для локального взаимодействия - это наиболее безопасный вариант
+
+### TCP Socket
+
+1. **Firewall**: ОБЯЗАТЕЛЬНО настройте firewall для ограничения доступа к TCP порту
+   ```bash
+   # Разрешить только с конкретного IP агента
+   iptables -A INPUT -p tcp --dport 7777 -s 192.168.1.100 -j ACCEPT
+   iptables -A INPUT -p tcp --dport 7777 -j DROP
+
+   # Или через firewalld
+   firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="192.168.1.100" port port="7777" protocol="tcp" accept'
+   firewall-cmd --reload
+   ```
+
+2. **Bind Address**: Привязывайте к конкретному IP, а не к 0.0.0.0
+   ```
+   # ✅ Хорошо - слушаем только внутренний интерфейс
+   stats socket ipv4@192.168.1.15:7777 level admin
+
+   # ❌ Плохо - слушаем на всех интерфейсах (включая публичные)
+   stats socket ipv4@0.0.0.0:7777 level admin
+   ```
+
+3. **Сетевая сегментация**: Используйте TCP socket только в доверенных сетях (management VLAN)
+
+4. **SSL/TLS**: HAProxy Runtime API не поддерживает нативно SSL. Используйте:
+   - VPN туннель (OpenVPN, WireGuard)
+   - SSH туннель: `ssh -L 7777:localhost:7777 haproxy-server`
+   - Stunnel для SSL обертки
+
+5. **Мониторинг**: Включите логирование всех подключений к порту
+   ```bash
+   # Мониторинг подключений
+   watch 'netstat -tnp | grep :7777'
+   ```
+
+### Общие рекомендации
+
+1. **Аутентификация агента**: Рекомендуется использовать `AGENT_SECURITY_ENABLED=true` и `AGENT_AUTH_TOKEN`
+   ```bash
+   export AGENT_SECURITY_ENABLED=true
+   export AGENT_AUTH_TOKEN="secure-random-token-here"
+   ```
+
+2. **Аудит**: Все операции логируются для отслеживания изменений
+   - Логи агента: содержат все API запросы и HAProxy команды
+   - Логи HAProxy: можно включить логирование Runtime API команд
+
+3. **Least Privilege**: HAProxy socket должен иметь минимально необходимый уровень доступа
+   ```
+   # Если нужен только мониторинг (без изменений)
+   stats socket /var/run/haproxy.sock mode 660 level operator
+
+   # Для полного управления (drain, maint, ready)
+   stats socket /var/run/haproxy.sock mode 660 level admin
+   ```
+
+4. **Ротация токенов**: Регулярно меняйте `AGENT_AUTH_TOKEN` если используется аутентификация
 
 ## Устранение неполадок
 
@@ -317,6 +458,68 @@ done
 **Решение:**
 - Проверьте правильность имени бэкенда и сервера
 - Используйте GET запрос для получения актуального списка серверов
+
+### TCP подключение отклонено (Connection refused)
+
+```json
+{
+  "success": false,
+  "status_code": 503,
+  "error": "Ошибка подключения к HAProxy: [Errno 111] Connection refused"
+}
+```
+
+**Решение:**
+- Убедитесь, что HAProxy запущен: `systemctl status haproxy`
+- Проверьте, что в haproxy.cfg настроен TCP socket:
+  ```
+  stats socket ipv4@192.168.1.15:7777 level admin
+  ```
+- Проверьте, что порт слушается: `netstat -tlnp | grep 7777`
+- Проверьте firewall: `iptables -L | grep 7777` или `firewall-cmd --list-ports`
+
+### Неверный формат socket_path
+
+```json
+{
+  "success": false,
+  "status_code": 503,
+  "error": "Ошибка подключения к HAProxy: Invalid IPv4 format: ipv4@192.168.1.15. Expected: ipv4@host:port"
+}
+```
+
+**Решение:**
+- IPv4 формат: `ipv4@192.168.1.15:7777` (обязателен порт)
+- Unix формат: `/var/run/haproxy.sock` (без префикса)
+
+### Невалидный порт
+
+```json
+{
+  "success": false,
+  "status_code": 503,
+  "error": "Invalid port: 99999"
+}
+```
+
+**Решение:**
+- Порт должен быть в диапазоне 1-65535
+- Проверьте HAPROXY_SOCKET_PATH или HAPROXY_INSTANCES
+
+### Таймаут при TCP подключении
+
+```json
+{
+  "success": false,
+  "status_code": 503,
+  "error": "Ошибка подключения к HAProxy: [Errno 110] Connection timed out"
+}
+```
+
+**Решение:**
+- Увеличьте `HAPROXY_TIMEOUT` (по умолчанию 5.0 секунд)
+- Проверьте сетевую доступность: `telnet 192.168.1.15 7777`
+- Проверьте маршрутизацию: `ping 192.168.1.15`
 
 ## Версии HAProxy
 

@@ -1,7 +1,7 @@
 # plugins/haproxy_client.py
 import socket
 import logging
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Tuple, Union
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -19,9 +19,13 @@ class HAProxyCommandError(Exception):
 
 class HAProxyClient:
     """
-    Клиент для взаимодействия с HAProxy через Unix Socket.
+    Клиент для взаимодействия с HAProxy через Unix Socket или TCP Socket.
 
     Поддерживает HAProxy версии 2.x и выше.
+
+    Форматы socket_path:
+    - Unix socket: /var/run/haproxy.sock
+    - TCP IPv4: ipv4@192.168.1.15:7777
     """
 
     # Допустимые состояния сервера
@@ -35,30 +39,98 @@ class HAProxyClient:
         Инициализация клиента HAProxy.
 
         Args:
-            socket_path: Путь к Unix Socket HAProxy
+            socket_path: Путь к Unix Socket или TCP адрес
+                        Форматы:
+                        - Unix: /var/run/haproxy.sock
+                        - IPv4: ipv4@192.168.1.15:7777
             timeout: Таймаут для операций с сокетом (секунды)
         """
-        self.socket_path = Path(socket_path)
+        self.socket_path_str = socket_path
         self.timeout = timeout
 
-        logger.info(f"HAProxyClient инициализирован: socket={socket_path}, timeout={timeout}s")
+        # Определяем тип socket и парсим адрес
+        self.socket_type, self.address = self._parse_socket_path(socket_path)
+
+        logger.info(f"HAProxyClient инициализирован: type={self.socket_type}, "
+                   f"address={self.address}, timeout={timeout}s")
+
+        # Валидация в зависимости от типа
         self._validate_socket()
 
+    def _parse_socket_path(self, socket_path: str) -> Tuple[str, Union[Path, Tuple[str, int]]]:
+        """
+        Парсит socket_path и определяет тип подключения.
+
+        Args:
+            socket_path: Строка с путем или адресом
+
+        Returns:
+            Tuple[str, Union[Path, Tuple[str, int]]]: (тип, адрес)
+                - ('unix', Path) для Unix socket
+                - ('tcp4', (host, port)) для IPv4
+
+        Raises:
+            HAProxyConnectionError: Если формат невалидный
+        """
+        socket_path = socket_path.strip()
+        logger.info(f"Парсинг socket_path: {socket_path}")
+        # TCP IPv4: ipv4@192.168.1.15:7777
+        if socket_path.startswith('ipv4@'):
+            address_str = socket_path[5:]  # Убираем 'ipv4@'
+            
+            # Парсим host:port
+            if ':' not in address_str:
+                raise HAProxyConnectionError(
+                    f"Invalid IPv4 format: {socket_path}. Expected: ipv4@host:port"
+                )
+
+            host, port_str = address_str.rsplit(':', 1)
+            try:
+                port = int(port_str)
+                if not (1 <= port <= 65535):
+                    raise ValueError("Port out of range")
+            except ValueError as e:
+                raise HAProxyConnectionError(
+                    f"Invalid port in IPv4 address: {port_str} ({e})"
+                )
+
+            logger.debug(f"Parsed as IPv4 TCP: {host}:{port}")
+            return ('tcp4', (host, port))
+
+        # Unix socket: /var/run/haproxy.sock
+        else:
+            socket_file = Path(socket_path)
+            logger.debug(f"Parsed as Unix socket: {socket_file}")
+            return ('unix', socket_file)
+
     def _validate_socket(self) -> None:
-        """Проверка доступности socket файла."""
-        if not self.socket_path.exists():
-            logger.error(f"HAProxy socket не существует: {self.socket_path}")
-            raise HAProxyConnectionError(f"Socket file not found: {self.socket_path}")
+        """Проверка доступности socket в зависимости от типа."""
+        if self.socket_type == 'unix':
+            # Валидация Unix socket
+            socket_file = self.address
 
-        if not self.socket_path.is_socket():
-            logger.error(f"Путь не является socket: {self.socket_path}")
-            raise HAProxyConnectionError(f"Path is not a socket: {self.socket_path}")
+            if not socket_file.exists():
+                logger.error(f"HAProxy socket не существует: {socket_file}")
+                raise HAProxyConnectionError(f"Socket file not found: {socket_file}")
 
-        logger.debug(f"HAProxy socket валидирован: {self.socket_path}")
+            if not socket_file.is_socket():
+                logger.error(f"Путь не является socket: {socket_file}")
+                raise HAProxyConnectionError(f"Path is not a socket: {socket_file}")
+
+            logger.debug(f"Unix socket валидирован: {socket_file}")
+
+        elif self.socket_type == 'tcp4':
+            # Для TCP просто проверяем формат адреса
+            host, port = self.address
+            logger.debug(f"TCP socket валидирован: {host}:{port}")
+            # Реальная проверка подключения произойдет при первом _send_command
+
+        else:
+            raise HAProxyConnectionError(f"Unknown socket type: {self.socket_type}")
 
     def _send_command(self, command: str) -> str:
         """
-        Отправляет команду в HAProxy через Unix Socket.
+        Отправляет команду в HAProxy через Unix Socket или TCP Socket.
 
         Args:
             command: Команда для выполнения
@@ -70,19 +142,33 @@ class HAProxyClient:
             HAProxyConnectionError: Ошибка подключения
             HAProxyCommandError: Ошибка выполнения команды
         """
-        logger.debug(f"Отправка команды в HAProxy: {command}")
+        logger.debug(f"Отправка команды в HAProxy ({self.socket_type}): {command}")
 
         try:
-            # Создаем сокет
-            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            # Создаем сокет в зависимости от типа
+            if self.socket_type == 'unix':
+                sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                connect_address = str(self.address)
+                logger.debug(f"Создан Unix socket, адрес: {connect_address}")
+
+            elif self.socket_type == 'tcp4':
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                connect_address = self.address  # (host, port) tuple
+                logger.debug(f"Создан IPv4 socket, адрес: {connect_address}")
+
+            else:
+                raise HAProxyConnectionError(f"Unsupported socket type: {self.socket_type}")
+
             sock.settimeout(self.timeout)
 
             try:
-                # Подключаемся к HAProxy socket
-                sock.connect(str(self.socket_path))
+                # Подключаемся к HAProxy
+                sock.connect(connect_address)
+                logger.debug(f"Подключение установлено")
 
                 # Отправляем команду (HAProxy ожидает \n в конце)
                 sock.sendall(f"{command}\n".encode('utf-8'))
+                logger.debug(f"Команда отправлена")
 
                 # Получаем ответ
                 response = b""
@@ -99,6 +185,7 @@ class HAProxyClient:
 
             finally:
                 sock.close()
+                logger.debug("Socket закрыт")
 
         except socket.timeout:
             error_msg = f"Таймаут при выполнении команды: {command}"
@@ -273,8 +360,8 @@ class HAProxyClient:
         # Валидация состояния
         if state not in self.VALID_STATES:
             raise ValueError(
-                f"Невалидное состояние '{state}'. "
-                f"Допустимые значения: {', '.join(self.VALID_STATES)}"
+                f"Invalid state '{state}'. "
+                f"Allowed values: {', '.join(self.VALID_STATES)}"
             )
 
         logger.info(f"Установка состояния сервера: {backend_name}/{server_name} -> {state}")
@@ -288,7 +375,7 @@ class HAProxyClient:
                 # Если есть ответ, проверяем на ошибки
                 if 'error' in response.lower() or 'invalid' in response.lower():
                     logger.error(f"HAProxy вернул ошибку: {response}")
-                    raise HAProxyCommandError(f"Ошибка от HAProxy: {response}")
+                    raise HAProxyCommandError(f"HAProxy error: {response}")
 
             logger.info(f"Состояние сервера {backend_name}/{server_name} успешно изменено на '{state}'")
             return True
@@ -296,7 +383,7 @@ class HAProxyClient:
         except HAProxyCommandError:
             raise
         except Exception as e:
-            error_msg = f"Ошибка установки состояния сервера {backend_name}/{server_name}: {e}"
+            error_msg = f"Failed to set server state {backend_name}/{server_name}: {e}"
             logger.error(error_msg)
             raise HAProxyCommandError(error_msg)
 

@@ -35,9 +35,15 @@ class Config:
     HAPROXY_SOCKET_PATH = os.getenv("HAPROXY_SOCKET_PATH", "/var/run/haproxy.sock")
 
     # Множественные HAProxy инстансы (опционально)
-    # Формат: "name1:/path/to/socket1,name2:/path/to/socket2"
+    # Форматы:
+    #   - Один адрес (создаст default инстанс):
+    #     - Unix socket: "/var/run/haproxy.sock"
+    #     - TCP IPv4: "ipv4@192.168.1.1:7777"
+    #   - Несколько с именами (разделитель =):
+    #     "prod=ipv4@192.168.1.1:7777,test=ipv4@192.168.1.2:7777"
+    #     "prod=/var/run/haproxy1.sock,test=/var/run/haproxy2.sock"
     # Если не указано, используется HAPROXY_SOCKET_PATH как default инстанс
-    HAPROXY_INSTANCES = os.getenv("HAPROXY_INSTANCES", None)
+    HAPROXY_INSTANCES = os.getenv("HAPROXY_INSTANCES", 'ipv4@192.168.1.1:7777')
 
     # Таймаут для операций с HAProxy (секунды)
     HAPROXY_TIMEOUT = float(os.getenv("HAPROXY_TIMEOUT", "5.0"))

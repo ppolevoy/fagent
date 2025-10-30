@@ -112,16 +112,28 @@ class SVCAppDiscoverer(AbstractDiscoverer):
                         continue
 
                     # Парсим строку с PID
+                    # Формат: "               STIME     PID PROCESS_NAME"
+                    # Нужно найти первое число (PID) в строке
                     parts = line.strip().split()
                     if len(parts) >= 2:
-                        try:
-                            # Первое число в строке - это PID (основной процесс)
-                            pid = int(parts[0])
-                            process_name = parts[1] if len(parts) > 1 else 'unknown'
+                        # Ищем первый элемент, который можно преобразовать в int
+                        pid = None
+                        process_name = 'unknown'
+
+                        for i, part in enumerate(parts):
+                            try:
+                                pid = int(part)
+                                # Нашли PID, следующий элемент - имя процесса
+                                process_name = parts[i + 1] if i + 1 < len(parts) else 'unknown'
+                                break
+                            except ValueError:
+                                continue
+
+                        if pid:
                             logger.debug(f"{app_name}: найден PID {pid} ({process_name})")
                             return pid  # Возвращаем первый найденный PID
-                        except (ValueError, IndexError):
-                            logger.debug(f"Не удалось распарсить PID из строки: {line.strip()}")
+                        else:
+                            logger.debug(f"Не удалось найти PID в строке: {line.strip()}")
                             continue
 
                 logger.debug(f"{app_name}: не найдено запущенных процессов")

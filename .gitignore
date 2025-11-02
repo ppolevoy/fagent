@@ -28,3 +28,4 @@ test_rolling_update.sh
 REMOVE_IPV6_SUMMARY.md
 CHANGELOG.md
 FIX_SVCS_PID_PARSING.md
+CLAUDE.md

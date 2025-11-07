@@ -27,9 +27,11 @@ class Config:
         "jar,war"
     ).split(',')
 
-    # Путь к JSON файлу с маппингом имен приложений
-    # Формат: {"app_name": "htdoc_name", ...}
-    # Пример: {"doc-print": "document-printable"}
+    # Путь к JSON файлу с маппингом имен/путей приложений
+    # Формат: {"app_name": "htdoc_name_or_path", ...}
+    # Примеры:
+    #   Относительное имя: {"doc-print": "document-printable"}
+    #   Абсолютный путь:   {"app1": "/opt/custom/app1.war"}
     APP_NAME_MAPPING_FILE = Path(os.getenv(
         "APP_NAME_MAPPING_FILE",
         str(Path(__file__).parent / "app_name_mapping.json")

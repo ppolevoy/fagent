@@ -329,6 +329,9 @@ class SVCAppDiscoverer(AbstractDiscoverer):
         Поиск артефакта приложения (jar/war/dir).
 
         Использует маппинг имен, если он задан в конфигурации.
+        Маппинг может содержать:
+        - Относительное имя: "document-printable" -> ищет в htdoc_root
+        - Абсолютный путь: "/path/to/app.war" -> использует напрямую
 
         Args:
             app_name: Имя приложения из app_root
@@ -336,12 +339,38 @@ class SVCAppDiscoverer(AbstractDiscoverer):
         Returns:
             Tuple[Optional[Path], Optional[str]]: (путь_к_артефакту, тип_артефакта)
         """
-        # Определяем имя для поиска в htdoc_root
-        # Если есть маппинг - используем его, иначе - имя приложения
-        htdoc_name = self.name_mapping.get(app_name, app_name)
+        # Определяем имя/путь для поиска артефакта
+        htdoc_name_or_path = self.name_mapping.get(app_name, app_name)
 
-        if htdoc_name != app_name:
-            logger.debug(f"{app_name}: используется маппинг -> {htdoc_name}")
+        if htdoc_name_or_path != app_name:
+            logger.debug(f"{app_name}: используется маппинг -> {htdoc_name_or_path}")
+
+        # Проверяем, является ли значение маппинга абсолютным путем
+        mapped_path = Path(htdoc_name_or_path)
+        if mapped_path.is_absolute():
+            logger.debug(f"{app_name}: маппинг указывает на абсолютный путь {mapped_path}")
+
+            if not mapped_path.exists():
+                logger.warning(f"{app_name}: путь из маппинга не существует: {mapped_path}")
+                return None, None
+
+            # Определяем тип артефакта по пути
+            if mapped_path.is_dir():
+                return mapped_path, 'directory'
+            elif mapped_path.is_file():
+                suffix = mapped_path.suffix.lstrip('.')
+                if suffix in self.supported_extensions:
+                    logger.debug(f"{app_name}: найден {suffix.upper()} файл по абсолютному пути")
+                    return mapped_path, suffix
+                else:
+                    logger.warning(f"{app_name}: неподдерживаемый тип файла: {suffix}")
+                    return None, None
+            else:
+                logger.warning(f"{app_name}: путь не является файлом или директорией: {mapped_path}")
+                return None, None
+
+        # Относительное имя - ищем в htdoc_root
+        htdoc_name = htdoc_name_or_path
 
         # Проверяем артефакты в порядке приоритета
         for artifact_type in self.ARTIFACT_CHECK_ORDER:

@@ -1,10 +1,16 @@
 {
-  "_comment": "Маппинг имен приложений между app_root и htdoc_root",
+  "_comment": "Маппинг имен/путей приложений между app_root и артефактами",
   "_description": "Используйте этот файл когда имя директории в SVC_APP_ROOT отличается от имени в SVC_HTPDOC_ROOT",
   "_usage": "Скопируйте этот файл как app_name_mapping.json и отредактируйте под свои нужды",
-  "_format": "Ключ - имя из app_root, значение - имя из htdoc_root",
+  "_format": [
+    "Ключ - имя директории из app_root (например: /site/app/doc-print)",
+    "Значение может быть:",
+    "  1. Относительное имя - ищется в htdoc_root: 'document-printable' -> /site/share/htdoc/document-printable.war",
+    "  2. Абсолютный путь - используется напрямую: '/custom/path/to/app.war'"
+  ],
 
   "doc-print": "document-printable",
   "app1": "application-one-dist",
-  "myapp": "my-application-prod"
+  "special-app": "/opt/custom/deployments/special-app-1.0.0.war",
+  "legacy-app": "/var/legacy/apps/old-application/ROOT"
 }

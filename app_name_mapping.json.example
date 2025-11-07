@@ -1,0 +1,10 @@
+{
+  "_comment": "Маппинг имен приложений между app_root и htdoc_root",
+  "_description": "Используйте этот файл когда имя директории в SVC_APP_ROOT отличается от имени в SVC_HTPDOC_ROOT",
+  "_usage": "Скопируйте этот файл как app_name_mapping.json и отредактируйте под свои нужды",
+  "_format": "Ключ - имя из app_root, значение - имя из htdoc_root",
+
+  "doc-print": "document-printable",
+  "app1": "application-one-dist",
+  "myapp": "my-application-prod"
+}

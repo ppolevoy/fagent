@@ -2,6 +2,7 @@
 import re
 import subprocess
 import logging
+import json
 from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any
 
@@ -21,19 +22,25 @@ class SVCAppDiscoverer(AbstractDiscoverer):
         super().__init__()
         self.app_root = Config.SVC_APP_ROOT
         self.htdoc_root = Config.SVC_HTPDOC_ROOT
-        
+
         # Получаем список поддерживаемых расширений из конфигурации
         self.supported_extensions = getattr(
-            Config, 
-            'SUPPORTED_ARTIFACT_EXTENSIONS', 
+            Config,
+            'SUPPORTED_ARTIFACT_EXTENSIONS',
             ['jar', 'war']
         )
-        
+
+        # Загружаем маппинг имен приложений
+        self.name_mapping = self._load_name_mapping()
+
         logger.info(
             f"SVCAppDiscoverer инициализирован. "
             f"Поддерживаемые расширения: {', '.join(self.supported_extensions)}"
         )
-        
+
+        if self.name_mapping:
+            logger.info(f"Загружен маппинг для {len(self.name_mapping)} приложений")
+
         # Проверяем доступность директорий
         self._validate_paths()
     
@@ -41,9 +48,50 @@ class SVCAppDiscoverer(AbstractDiscoverer):
         """Проверка существования необходимых директорий"""
         if not self.app_root.exists():
             logger.warning(f"Директория приложений не существует: {self.app_root}")
-        
+
         if not self.htdoc_root.exists():
             logger.warning(f"Директория дистрибутивов не существует: {self.htdoc_root}")
+
+    def _load_name_mapping(self) -> Dict[str, str]:
+        """
+        Загрузка маппинга имен приложений из JSON файла.
+
+        Формат файла:
+        {
+            "app_name": "htdoc_name",
+            "doc-print": "document-printable"
+        }
+
+        Returns:
+            Dict[str, str]: Словарь маппинга имен или пустой словарь
+        """
+        mapping_file = getattr(Config, 'APP_NAME_MAPPING_FILE', None)
+
+        if not mapping_file:
+            logger.debug("Путь к файлу маппинга не задан в конфигурации")
+            return {}
+
+        if not mapping_file.exists():
+            logger.debug(f"Файл маппинга не найден: {mapping_file}")
+            return {}
+
+        try:
+            with open(mapping_file, 'r', encoding='utf-8') as f:
+                mapping = json.load(f)
+
+            if not isinstance(mapping, dict):
+                logger.warning(f"Некорректный формат файла маппинга: ожидается словарь")
+                return {}
+
+            logger.info(f"Загружен маппинг из {mapping_file}: {mapping}")
+            return mapping
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Ошибка парсинга JSON в {mapping_file}: {e}")
+        except Exception as e:
+            logger.error(f"Ошибка при загрузке маппинга из {mapping_file}: {e}")
+
+        return {}
     
     def _get_app_status(self, app_name: str) -> Tuple[str, str]:
         """
@@ -279,18 +327,27 @@ class SVCAppDiscoverer(AbstractDiscoverer):
     def _find_artifact(self, app_name: str) -> Tuple[Optional[Path], Optional[str]]:
         """
         Поиск артефакта приложения (jar/war/dir).
-        
+
+        Использует маппинг имен, если он задан в конфигурации.
+
         Args:
-            app_name: Имя приложения
-            
+            app_name: Имя приложения из app_root
+
         Returns:
             Tuple[Optional[Path], Optional[str]]: (путь_к_артефакту, тип_артефакта)
         """
+        # Определяем имя для поиска в htdoc_root
+        # Если есть маппинг - используем его, иначе - имя приложения
+        htdoc_name = self.name_mapping.get(app_name, app_name)
+
+        if htdoc_name != app_name:
+            logger.debug(f"{app_name}: используется маппинг -> {htdoc_name}")
+
         # Проверяем артефакты в порядке приоритета
         for artifact_type in self.ARTIFACT_CHECK_ORDER:
             if artifact_type == 'dir':
                 # Проверяем директорию (симлинк на директорию)
-                dir_symlink = self.htdoc_root / app_name
+                dir_symlink = self.htdoc_root / htdoc_name
                 if dir_symlink.is_symlink() and dir_symlink.resolve().is_dir():
                     logger.debug(f"{app_name}: найдена директория {dir_symlink}")
                     return dir_symlink.resolve(), 'directory'
@@ -298,8 +355,8 @@ class SVCAppDiscoverer(AbstractDiscoverer):
                 # Проверяем файловые артефакты
                 if artifact_type not in self.supported_extensions:
                     continue
-                
-                artifact_symlink = self.htdoc_root / f"{app_name}.{artifact_type}"
+
+                artifact_symlink = self.htdoc_root / f"{htdoc_name}.{artifact_type}"
                 if artifact_symlink.is_symlink():
                     resolved_path = artifact_symlink.resolve()
                     if resolved_path.exists():
@@ -312,8 +369,8 @@ class SVCAppDiscoverer(AbstractDiscoverer):
                             f"{app_name}: симлинк {artifact_symlink} указывает "
                             f"на несуществующий файл {resolved_path}"
                         )
-        
-        logger.warning(f"{app_name}: артефакт не найден")
+
+        logger.debug(f"{app_name}: артефакт не найден (искали как '{htdoc_name}')")
         return None, None
 
     def _build_version_pattern(self) -> re.Pattern:
@@ -447,30 +504,18 @@ class SVCAppDiscoverer(AbstractDiscoverer):
             )
             return []
         try:
-            # Получаем список приложений и дистрибутивов
+            # Получаем список приложений
             app_names = {
-                app_dir.name 
-                for app_dir in self.app_root.iterdir() 
+                app_dir.name
+                for app_dir in self.app_root.iterdir()
                 if app_dir.is_dir()
             }
-            
-            app_distrs = {
-                htdoc.stem 
-                for htdoc in self.htdoc_root.iterdir() 
-                if htdoc.is_symlink()
-            }
-            
-            # Находим пересечение (приложения, у которых есть и директория, и дистрибутив)
-            common_names = app_names & app_distrs
-            
-            logger.debug(
-                f"Обнаружено приложений: {len(app_names)}, "
-                f"дистрибутивов: {len(app_distrs)}, "
-                f"совпадений: {len(common_names)}"
-            )
-            
+
+            logger.debug(f"Обнаружено приложений в {self.app_root}: {len(app_names)}")
+
             # Обрабатываем каждое приложение
-            for name in sorted(common_names):
+            # Наличие артефакта проверяется в _find_artifact() с учетом маппинга
+            for name in sorted(app_names):
                 try:
                     # Получаем статус через svcs
                     status, start_time = self._get_app_status(name)
@@ -483,6 +528,11 @@ class SVCAppDiscoverer(AbstractDiscoverer):
 
                     # Находим артефакт
                     artifact_path, artifact_type = self._find_artifact(name)
+
+                    # Пропускаем приложения без артефакта
+                    if not artifact_path:
+                        logger.warning(f"{name}: артефакт не найден, приложение пропущено")
+                        continue
 
                     # Извлекаем версию
                     version = self._extract_version(artifact_path)

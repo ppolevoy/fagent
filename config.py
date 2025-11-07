@@ -23,9 +23,17 @@ class Config:
     SVC_HTPDOC_ROOT = Path(os.getenv("SVC_HTPDOC_ROOT", "/site/share/htdoc"))
 
     SUPPORTED_ARTIFACT_EXTENSIONS = os.getenv(
-        "SUPPORTED_ARTIFACT_EXTENSIONS", 
+        "SUPPORTED_ARTIFACT_EXTENSIONS",
         "jar,war"
-    ).split(',')    
+    ).split(',')
+
+    # Путь к JSON файлу с маппингом имен приложений
+    # Формат: {"app_name": "htdoc_name", ...}
+    # Пример: {"doc-print": "document-printable"}
+    APP_NAME_MAPPING_FILE = Path(os.getenv(
+        "APP_NAME_MAPPING_FILE",
+        str(Path(__file__).parent / "app_name_mapping.json")
+    ))    
 
     # Настройки безопасности
     SECURITY_ENABLED = os.getenv("AGENT_SECURITY_ENABLED", "false").lower() == "true"

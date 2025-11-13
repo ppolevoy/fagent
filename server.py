@@ -69,6 +69,19 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
                 "pid": app.metadata.get("pid"),
                 "start_time": app.start_time
             }
+
+            # Добавляем Eureka метаданные если есть
+            if app.metadata.get("eureka_registered"):
+                docker_app["eureka_registered"] = True
+                docker_app["eureka_instance_id"] = app.metadata.get("eureka_instance_id")
+                docker_app["eureka_app_name"] = app.metadata.get("eureka_app_name")
+                docker_app["eureka_status"] = app.metadata.get("eureka_status")
+                docker_app["eureka_url"] = app.metadata.get("eureka_url")
+                docker_app["eureka_health_url"] = app.metadata.get("eureka_health_url")
+                docker_app["eureka_vip"] = app.metadata.get("eureka_vip")
+            else:
+                docker_app["eureka_registered"] = False
+
             # Убираем None значения
             result.append({k: v for k, v in docker_app.items() if v is not None})
         return result
@@ -112,6 +125,8 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
             last_update = (datetime.now() + timedelta(hours=7)).strftime("%Y%m%d_%H%M%S")
 
             # Группируем приложения по источнику
+            # ВАЖНО: Eureka приложения НЕ включаются в основной список,
+            # они используются только для обогащения Docker/SVC приложений
             docker_apps = []
             svc_apps = []
 
@@ -121,6 +136,9 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
                     docker_apps.append(app)
                 elif source == "svc":
                     svc_apps.append(app)
+                elif source == "eureka":
+                    # Пропускаем Eureka приложения - они только для обогащения
+                    continue
                 # Если source не указан (старые плагины), считаем что это SVC
                 elif source == "unknown":
                     svc_apps.append(app)

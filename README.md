@@ -8,6 +8,7 @@ FAgent - это агент для обнаружения и управления
 
 - 🔍 **Автоматическое обнаружение приложений** через Solaris SVC (Service Management Facility)
 - ⚖️ **Интеграция с HAProxy** для управления состоянием серверов (ready/drain/maint)
+- 🎯 **Интеграция с Eureka** для обнаружения и управления Spring Boot приложениями
 - 🌐 **REST API** для запросов статуса и управления инфраструктурой
 - 📦 **Ansible плейбуки** для оркестрации rolling updates
 - 🔌 **Плагинная архитектура** для расширения функциональности
@@ -47,6 +48,15 @@ curl http://localhost:11011/api/v1/haproxy/backends
 - 📖 [HAPROXY_API_REFERENCE.md](HAPROXY_API_REFERENCE.md) - Полный справочник всех методов с примерами использования и сценариями автоматизации
 - 📋 [HAPROXY_API_METHODS_TABLE.md](HAPROXY_API_METHODS_TABLE.md) - Сводная таблица всех доступных методов для быстрого поиска
 
+### Eureka API
+
+- 🚀 [EUREKA_QUICKSTART.md](EUREKA_QUICKSTART.md) - Быстрый старт с Eureka API
+- 📚 [EUREKA_CONTROL_API.md](EUREKA_CONTROL_API.md) - Полная документация Eureka Control API
+- 🔌 [EUREKA_PLUGIN.md](EUREKA_PLUGIN.md) - Документация Eureka discoverer плагина
+- 📖 [EUREKA_API_EXAMPLES.md](EUREKA_API_EXAMPLES.md) - Примеры работы с Eureka API
+- 📋 [EUREKA_CHEATSHEET.md](EUREKA_CHEATSHEET.md) - Шпаргалка по командам
+- 🔗 [DOCKER_EUREKA_INTEGRATION.md](DOCKER_EUREKA_INTEGRATION.md) - Интеграция Docker ↔ Eureka
+
 ### Проект
 
 - 🎯 [CLAUDE.md](CLAUDE.md) - Инструкции для работы с кодовой базой в Claude Code
@@ -62,11 +72,29 @@ curl http://localhost:11011/api/v1/haproxy/backends
 |-------|----------|----------|
 | GET | `/ping` | Health check агента |
 | GET | `/app` | Список обнаруженных приложений |
+
+### HAProxy API
+
+| Метод | Endpoint | Описание |
+|-------|----------|----------|
 | GET | `/api/v1/haproxy/backends` | Список HAProxy бэкендов |
 | GET | `/api/v1/haproxy/backends/{backend}/servers` | Серверы в бэкенде |
 | POST | `/api/v1/haproxy/backends/{backend}/servers/{server}/action` | Управление состоянием сервера |
 
-Полный список методов см. в [HAPROXY_API_METHODS_TABLE.md](HAPROXY_API_METHODS_TABLE.md)
+Полный список HAProxy методов см. в [HAPROXY_API_METHODS_TABLE.md](HAPROXY_API_METHODS_TABLE.md)
+
+### Eureka API
+
+| Метод | Endpoint | Описание |
+|-------|----------|----------|
+| GET | `/api/v1/eureka/apps` | Список всех приложений в Eureka |
+| GET | `/api/v1/eureka/apps/{instance_id}` | Информация о приложении |
+| GET | `/api/v1/eureka/apps/{instance_id}/health` | Health check приложения |
+| POST | `/api/v1/eureka/apps/{instance_id}/pause` | Pause приложения |
+| POST | `/api/v1/eureka/apps/{instance_id}/shutdown` | Graceful shutdown |
+| POST | `/api/v1/eureka/apps/{instance_id}/loglevel` | Изменить log level |
+
+Полная документация: [EUREKA_CONTROL_API.md](EUREKA_CONTROL_API.md)
 
 ## Конфигурация
 
@@ -89,6 +117,12 @@ export HAPROXY_TIMEOUT="5.0"
 
 # Множественные HAProxy инстансы
 export HAPROXY_INSTANCES="prod=/var/run/haproxy1.sock,staging=/var/run/haproxy2.sock"
+
+# Eureka
+export EUREKA_DISCOVERY_ENABLED="true"
+export EUREKA_HOST="eureka.example.com"
+export EUREKA_PORT="8761"
+export EUREKA_REQUEST_TIMEOUT="10"
 ```
 
 Подробнее см. [config.py](config.py)
@@ -101,8 +135,10 @@ export HAPROXY_INSTANCES="prod=/var/run/haproxy1.sock,staging=/var/run/haproxy2.
 
 ```
 plugins/
-├── svc_app_discoverer.py  # Обнаружение через Solaris SVC
-└── your_discoverer.py     # Ваш собственный плагин
+├── svc_app_discoverer.py     # Обнаружение через Solaris SVC
+├── eureka_discoverer.py      # Обнаружение через Netflix Eureka
+├── docker_discoverer.py      # Обнаружение Docker контейнеров
+└── your_discoverer.py        # Ваш собственный плагин
 ```
 
 ### Контроллеры API
@@ -112,6 +148,7 @@ plugins/
 ```
 controllers/
 ├── haproxy_controller.py  # Управление HAProxy
+├── eureka_controller.py   # Управление Eureka приложениями
 └── your_controller.py     # Ваш собственный контроллер
 ```
 

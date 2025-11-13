@@ -38,6 +38,27 @@ class DockerDiscoverer(AbstractDiscoverer):
             logger.info("Docker discoverer отключен в конфигурации")
             self.client = None
 
+        # Инициализация Eureka client для обогащения данных (опционально)
+        self.eureka_client = None
+        self.eureka_enabled = getattr(config, 'EUREKA_DISCOVERY_ENABLED', False)
+
+        if self.eureka_enabled:
+            try:
+                from plugins.eureka_client import EurekaClient
+                eureka_host = getattr(config, 'EUREKA_HOST', 'fdse.f.ftc.ru')
+                eureka_port = getattr(config, 'EUREKA_PORT', 8761)
+                eureka_timeout = getattr(config, 'EUREKA_REQUEST_TIMEOUT', 10)
+
+                self.eureka_client = EurekaClient(
+                    host=eureka_host,
+                    port=eureka_port,
+                    timeout=eureka_timeout
+                )
+                logger.info("Docker discoverer: Eureka integration enabled")
+            except Exception as e:
+                logger.warning(f"Docker discoverer: Не удалось инициализировать Eureka client: {e}")
+                self.eureka_client = None
+
     def _get_server_ip(self) -> str:
         """Получение IP адреса сервера"""
         try:
@@ -110,6 +131,47 @@ class DockerDiscoverer(AbstractDiscoverer):
             return "created"
         else:
             return "unknown"
+
+    def _enrich_with_eureka(self, ip: str, port: int) -> dict:
+        """
+        Обогащение данных Docker контейнера информацией из Eureka.
+
+        Проверяет зарегистрировано ли приложение с данным IP:port в Eureka
+        и возвращает дополнительные метаданные.
+
+        Args:
+            ip: IP адрес контейнера
+            port: Порт контейнера
+
+        Returns:
+            Словарь с Eureka метаданными или пустой словарь
+        """
+        if not self.eureka_client or not port:
+            return {}
+
+        try:
+            eureka_app = self.eureka_client.find_app_by_ip_port(ip, port)
+
+            if eureka_app:
+                # Приложение найдено в Eureka
+                return {
+                    "eureka_registered": True,
+                    "eureka_instance_id": eureka_app.get("instance_id", ""),
+                    "eureka_app_name": eureka_app.get("app_name", ""),
+                    "eureka_status": eureka_app.get("status", "UNKNOWN"),
+                    "eureka_url": eureka_app.get("home_page_url", ""),
+                    "eureka_health_url": eureka_app.get("health_check_url", ""),
+                    "eureka_vip": eureka_app.get("vip_address", "")
+                }
+            else:
+                # Приложение не зарегистрировано в Eureka
+                return {
+                    "eureka_registered": False
+                }
+
+        except Exception as e:
+            logger.debug(f"Ошибка обогащения Eureka данными для {ip}:{port}: {e}")
+            return {}
 
     def _format_start_time(self, start_time: str) -> str:
         """
@@ -200,26 +262,37 @@ class DockerDiscoverer(AbstractDiscoverer):
                     base_status = self._extract_status_from_state(status_string)
                     app_status = self._map_docker_status(base_status)
 
+                    # Базовые метаданные
+                    metadata = {
+                        "source": "docker",
+                        "container_id": container_id,
+                        "container_name": container_name,
+                        "image": image,
+                        "tag": tag,
+                        "image_full": image_full,
+                        "ip": server_ip,
+                        "port": port if port else None,
+                        "pid": pid if pid else None,
+                        "compose_project_dir": compose_dir,
+                        "docker_status": status_string,
+                        "docker_state": base_status
+                    }
+
+                    # Обогащение данными из Eureka (если включено)
+                    if self.eureka_client and port:
+                        eureka_data = self._enrich_with_eureka(server_ip, port)
+                        if eureka_data:
+                            metadata.update(eureka_data)
+                            if eureka_data.get("eureka_registered"):
+                                logger.debug(f"Docker контейнер {container_name} зарегистрирован в Eureka: {eureka_data.get('eureka_instance_id')}")
+
                     # Создаем ApplicationInfo
                     app_info = ApplicationInfo(
                         name=container_name,
                         version=tag,
                         status=app_status,
                         start_time=start_time,
-                        metadata={
-                            "source": "docker",
-                            "container_id": container_id,
-                            "container_name": container_name,
-                            "image": image,
-                            "tag": tag,
-                            "image_full": image_full,
-                            "ip": server_ip,
-                            "port": port if port else None,
-                            "pid": pid if pid else None,
-                            "compose_project_dir": compose_dir,
-                            "docker_status": status_string,
-                            "docker_state": base_status
-                        }
+                        metadata=metadata
                     )
 
                     applications.append(app_info)

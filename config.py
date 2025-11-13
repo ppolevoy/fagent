@@ -47,3 +47,14 @@ class Config:
 
     # Таймаут для операций с HAProxy (секунды)
     HAPROXY_TIMEOUT = float(os.getenv("HAPROXY_TIMEOUT", "5.0"))
+
+    # Docker Discovery Settings
+    DOCKER_DISCOVERY_ENABLED = os.getenv("DOCKER_DISCOVERY_ENABLED", "true").lower() == "true"
+    DOCKER_SOCKET_PATH = os.getenv("DOCKER_SOCKET_PATH", "/var/run/docker.sock")
+    DOCKER_REQUEST_TIMEOUT = int(os.getenv("DOCKER_REQUEST_TIMEOUT", "10"))
+
+    # Eureka Discovery Settings
+    EUREKA_DISCOVERY_ENABLED = os.getenv("EUREKA_DISCOVERY_ENABLED", "false").lower() == "true"
+    EUREKA_HOST = os.getenv("EUREKA_HOST", "fdse.f.ftc.ru")
+    EUREKA_PORT = int(os.getenv("EUREKA_PORT", "8761"))
+    EUREKA_REQUEST_TIMEOUT = int(os.getenv("EUREKA_REQUEST_TIMEOUT", "10"))

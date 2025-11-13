@@ -154,6 +154,7 @@ class HAProxyController(AbstractController):
         Обрабатывает GET запросы.
 
         Поддерживаемые пути:
+        - /api/v1/haproxy/instances - список всех доступных инстансов
         - /api/v1/haproxy/backends - список бэкендов
         - /api/v1/haproxy/backends/{backend}/servers - серверы в бэкенде
         - /api/v1/haproxy/{instance}/backends - список бэкендов инстанса
@@ -174,6 +175,34 @@ class HAProxyController(AbstractController):
 
             # Проверяем первую часть пути
             first_part = path_parts[0]
+
+            # Специальный endpoint для получения списка инстансов
+            if first_part == 'instances' and len(path_parts) == 1:
+                instances = self.get_instances()
+                instances_info = []
+
+                # Добавляем информацию о каждом инстансе
+                for instance_name in instances:
+                    client = self.clients[instance_name]
+                    try:
+                        # Проверяем доступность инстанса
+                        is_available = client.health_check()
+                        instances_info.append({
+                            'name': instance_name,
+                            'socket_path': client.socket_path_str,
+                            'available': is_available
+                        })
+                    except Exception:
+                        instances_info.append({
+                            'name': instance_name,
+                            'socket_path': client.socket_path_str,
+                            'available': False
+                        })
+
+                return self._success_response({
+                    'instances': instances_info,
+                    'count': len(instances_info)
+                })
 
             # Вариант 1: /backends/...
             if first_part == 'backends':

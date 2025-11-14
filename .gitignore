@@ -74,3 +74,6 @@ HAPROXY_API_REFERENCE.md
 HAPROXY_API_METHODS_TABLE.md
 FAGENT_CONTROL_SCRIPT.md
 docser-plugin.md
+.fagent.pid
+fagent.log
+controllers/__pycache__/eureka_controller.cpython-311.pyc

@@ -88,3 +88,48 @@
 2025-11-13 18:55:24,269 - plugins.docker_client - INFO - Получено 6 контейнеров
 2025-11-13 18:55:24,468 - docker_discoverer - INFO - Docker discoverer обнаружил 6 контейнеров
 2025-11-13 18:55:24,468 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-11-14 18:40:32,036 - control_manager - WARNING - Контроллер 'eureka' не найден
+2025-11-14 18:41:14,354 - __main__ - INFO - Received SIGTERM, beginning graceful shutdown...
+2025-11-14 18:41:14,354 - __main__ - INFO - Stopping HTTP server...
+2025-11-14 18:41:19,356 - __main__ - INFO - HTTP server stopped ✓
+2025-11-14 18:41:19,356 - __main__ - INFO - The agent has been stopped successfully.
+2025-11-14 18:41:21,546 - root - INFO - Starting Application Discovery Agent...
+2025-11-14 18:41:21,546 - __main__ - INFO - Initializing discovery manager...
+2025-11-14 18:41:21,546 - discovery - INFO - Loading plugins from: /site/app/FAgent/project/plugins
+2025-11-14 18:41:21,606 - eureka_discoverer - INFO - Eureka discoverer отключен в конфигурации
+2025-11-14 18:41:21,606 - discovery - INFO -   - Loaded discoverer: EurekaDiscoverer
+2025-11-14 18:41:21,625 - docker_discoverer - INFO - Docker discoverer инициализирован
+2025-11-14 18:41:21,625 - discovery - INFO -   - Loaded discoverer: DockerDiscoverer
+2025-11-14 18:41:21,625 - svc_app_discoverer - INFO - SVCAppDiscoverer инициализирован. Поддерживаемые расширения: jar, war
+2025-11-14 18:41:21,625 - svc_app_discoverer - WARNING - Директория дистрибутивов не существует: /site/share/htdoc
+2025-11-14 18:41:21,625 - discovery - INFO -   - Loaded discoverer: SVCAppDiscoverer
+2025-11-14 18:41:21,625 - __main__ - INFO - Plugins loaded: 3
+2025-11-14 18:41:21,625 - __main__ - INFO -   - EurekaDiscoverer
+2025-11-14 18:41:21,625 - __main__ - INFO -   - DockerDiscoverer
+2025-11-14 18:41:21,625 - __main__ - INFO -   - SVCAppDiscoverer
+2025-11-14 18:41:21,625 - __main__ - INFO - Выполнение пробного обнаружения...
+2025-11-14 18:41:21,905 - plugins.docker_client - INFO - Получено 8 контейнеров
+2025-11-14 18:41:22,134 - docker_discoverer - INFO - Docker discoverer обнаружил 8 контейнеров
+2025-11-14 18:41:22,134 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-11-14 18:41:22,134 - __main__ - INFO - Trial discovery completed. Apps found: 8
+2025-11-14 18:41:22,134 - __main__ - INFO - ============================================================
+2025-11-14 18:41:22,134 - __main__ - INFO - Starting HTTP server on 0.0.0.0:11011
+2025-11-14 18:41:22,134 - __main__ - INFO - ============================================================
+2025-11-14 18:41:22,134 - server - INFO - Инициализация ControlManager
+2025-11-14 18:41:22,134 - control_manager - INFO - Загрузка контроллеров из: /site/app/FAgent/project/controllers
+2025-11-14 18:41:22,136 - eureka_controller - WARNING - Eureka discovery отключен (EUREKA_DISCOVERY_ENABLED=false)
+2025-11-14 18:41:22,136 - control_manager - INFO -   - Загружен контроллер: eureka (EurekaController)
+2025-11-14 18:41:22,137 - haproxy_controller - INFO - Инициализация HAProxy клиентов
+2025-11-14 18:41:22,137 - plugins.haproxy_client - INFO - Парсинг socket_path: ipv4@192.168.1.1:7777
+2025-11-14 18:41:22,137 - plugins.haproxy_client - INFO - HAProxyClient инициализирован: type=tcp4, address=('192.168.1.1', 7777), timeout=5.0s
+2025-11-14 18:41:22,137 - plugins.haproxy_client - INFO - Получение информации о HAProxy
+2025-11-14 18:41:27,140 - plugins.haproxy_client - ERROR - Таймаут при выполнении команды: show info
+2025-11-14 18:41:27,140 - plugins.haproxy_client - ERROR - Ошибка получения информации о HAProxy: Таймаут при выполнении команды: show info
+2025-11-14 18:41:27,140 - plugins.haproxy_client - WARNING - Health check failed: Таймаут при выполнении команды: show info
+2025-11-14 18:41:27,140 - haproxy_controller - ERROR - HAProxy клиент 'default' не прошел health check: ipv4@192.168.1.1:7777
+2025-11-14 18:41:27,140 - haproxy_controller - WARNING - Не настроено ни одного HAProxy инстанса
+2025-11-14 18:41:27,140 - control_manager - INFO -   - Загружен контроллер: haproxy (HAProxyController)
+2025-11-14 18:41:27,140 - control_manager - INFO - Загружено контроллеров: 2
+2025-11-14 18:41:27,140 - control_manager - INFO -   - eureka
+2025-11-14 18:41:27,140 - control_manager - INFO -   - haproxy
+2025-11-14 18:41:27,141 - server - INFO - HTTP сервер создан на 0.0.0.0:11011

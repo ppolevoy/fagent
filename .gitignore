@@ -77,3 +77,4 @@ docser-plugin.md
 .fagent.pid
 fagent.log
 controllers/__pycache__/eureka_controller.cpython-311.pyc
+fagent.log

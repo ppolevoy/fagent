@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
 """
-Docker Discoverer - Plugin для обнаружения Docker контейнеров
-Версия: 2.0 (универсальная)
+Docker Discoverer (subprocess version) - Plugin для обнаружения Docker контейнеров
+Версия: 1.0 (subprocess)
 
-Этот плагин работает с ОБЕИМИ версиями docker_client:
-- docker-py версия (быстрая) - использует _container_obj для оптимизации
-- subprocess версия (совместимая) - использует методы клиента
-
-Автоматически определяет какая версия docker_client используется.
 """
 
 import logging

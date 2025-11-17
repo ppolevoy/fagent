@@ -13,7 +13,23 @@ APP_NAME="FAgent"
 MAIN_SCRIPT="main.py"
 PID_FILE="$SCRIPT_DIR/.fagent.pid"
 LOG_FILE="$SCRIPT_DIR/fagent.log"
-PYTHON_CMD="python3.11"
+
+# Автоопределение Python (поддержка venv)
+# Если запущен из активированного venv, используем python из venv
+# Иначе пытаемся найти локальный venv, иначе используем системный python3
+if [ -n "$VIRTUAL_ENV" ]; then
+    # venv активирован - используем python из него
+    PYTHON_CMD="$VIRTUAL_ENV/bin/python"
+elif [ -f "$SCRIPT_DIR/venv/bin/python" ]; then
+    # Есть локальный venv - используем его
+    PYTHON_CMD="$SCRIPT_DIR/venv/bin/python"
+elif [ -f "$SCRIPT_DIR/.venv/bin/python" ]; then
+    # Есть локальный .venv - используем его
+    PYTHON_CMD="$SCRIPT_DIR/.venv/bin/python"
+else
+    # Используем системный python3
+    PYTHON_CMD="python3"
+fi
 
 # Цвета для вывода
 RED='\033[0;31m'
@@ -200,6 +216,7 @@ status() {
 
     if is_running "$pid"; then
         log_info "$APP_NAME is running (PID: $pid)"
+        log_info "Using Python: $PYTHON_CMD"
 
         # Показываем дополнительную информацию
         echo ""

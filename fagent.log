@@ -451,3 +451,6 @@
 2025-11-18 00:36:56,560 - plugins.docker_client - INFO - Получено 9 контейнеров
 2025-11-18 00:36:56,560 - docker_discoverer - INFO - Docker discoverer обнаружил 9 контейнеров
 2025-11-18 00:36:56,560 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-11-18 00:37:56,873 - plugins.docker_client - INFO - Получено 9 контейнеров
+2025-11-18 00:37:56,874 - docker_discoverer - INFO - Docker discoverer обнаружил 9 контейнеров
+2025-11-18 00:37:56,874 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc

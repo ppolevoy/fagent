@@ -170,6 +170,52 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response_data, indent=4).encode("utf-8"))
             return
 
+        # Обработка запроса конкретного приложения по имени
+        # GET /api/v1/apps/{app_name}
+        elif len(parts) == 4 and parts[0:3] == ['api', 'v1', 'apps']:
+            app_name = parts[3]
+            apps = self.discovery_manager.run_discovery()
+
+            # Ищем приложение по имени
+            found_app = None
+            for app in apps:
+                source = app.metadata.get("source", "unknown")
+                # Для Docker сравниваем с container_name
+                if source == "docker":
+                    if app.metadata.get("container_name") == app_name:
+                        found_app = app
+                        break
+                # Для SVC и других сравниваем с name
+                else:
+                    if app.name == app_name:
+                        found_app = app
+                        break
+
+            if found_app is None:
+                self._set_headers(404)
+                self.wfile.write(json.dumps({
+                    "success": False,
+                    "error": f"Application '{app_name}' not found"
+                }, indent=2).encode("utf-8"))
+                return
+
+            # Форматируем ответ в зависимости от типа приложения
+            source = found_app.metadata.get("source", "unknown")
+            if source == "docker":
+                formatted_data = self._format_docker_apps([found_app])[0]
+            else:
+                formatted_data = self._format_svc_apps([found_app])[0]
+
+            response = {
+                "success": True,
+                "source": source if source != "unknown" else "svc",
+                "data": formatted_data
+            }
+
+            self._set_headers()
+            self.wfile.write(json.dumps(response, indent=2).encode("utf-8"))
+            return
+
         # Обработка API GET запросов для контроллеров
         # URL: /api/v1/{controller_name}/...
         elif len(parts) >= 3 and parts[0:2] == ['api', 'v1']:

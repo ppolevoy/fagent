@@ -2622,3 +2622,537 @@
 2025-12-09 21:52:39,128 - plugins.docker_client - INFO - Получено 5 контейнеров
 2025-12-09 21:52:39,128 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
 2025-12-09 21:52:39,128 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:31:54,518 - __main__ - INFO - Received SIGTERM, beginning graceful shutdown...
+2025-12-09 22:31:54,519 - __main__ - INFO - Stopping HTTP server...
+2025-12-09 22:31:59,519 - __main__ - INFO - HTTP server stopped ✓
+2025-12-09 22:31:59,519 - __main__ - INFO - The agent has been stopped successfully.
+2025-12-09 22:32:01,692 - root - INFO - Starting Application Discovery Agent...
+2025-12-09 22:32:01,692 - __main__ - INFO - Initializing discovery manager...
+2025-12-09 22:32:01,692 - discovery - INFO - Loading plugins from: /site/app/FAgent/project/plugins
+2025-12-09 22:32:01,716 - eureka_discoverer - INFO - Eureka discoverer отключен в конфигурации
+2025-12-09 22:32:01,716 - discovery - INFO -   - Loaded discoverer: EurekaDiscoverer
+2025-12-09 22:32:01,730 - docker_discoverer - INFO - Docker discoverer инициализирован
+2025-12-09 22:32:01,730 - discovery - INFO -   - Loaded discoverer: DockerDiscoverer
+2025-12-09 22:32:01,731 - svc_app_discoverer - INFO - SVCAppDiscoverer инициализирован. Поддерживаемые расширения: jar, war
+2025-12-09 22:32:01,731 - svc_app_discoverer - WARNING - Директория дистрибутивов не существует: /site/share/htdoc
+2025-12-09 22:32:01,731 - discovery - INFO -   - Loaded discoverer: SVCAppDiscoverer
+2025-12-09 22:32:01,731 - __main__ - INFO - Plugins loaded: 3
+2025-12-09 22:32:01,731 - __main__ - INFO -   - EurekaDiscoverer
+2025-12-09 22:32:01,731 - __main__ - INFO -   - DockerDiscoverer
+2025-12-09 22:32:01,731 - __main__ - INFO -   - SVCAppDiscoverer
+2025-12-09 22:32:01,731 - __main__ - INFO - Выполнение пробного обнаружения...
+2025-12-09 22:32:01,732 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:32:01,745 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:32:01,745 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:32:01,745 - discovery - INFO - Discovery completed in 15ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-09 22:32:01,745 - __main__ - INFO - Trial discovery completed. Apps found: 5
+2025-12-09 22:32:01,746 - __main__ - INFO - ============================================================
+2025-12-09 22:32:01,746 - __main__ - INFO - Starting HTTP server on 0.0.0.0:11011
+2025-12-09 22:32:01,746 - __main__ - INFO - ============================================================
+2025-12-09 22:32:01,746 - server - INFO - Инициализация ControlManager
+2025-12-09 22:32:01,746 - control_manager - INFO - Загрузка контроллеров из: /site/app/FAgent/project/controllers
+2025-12-09 22:32:01,746 - eureka_controller - WARNING - Eureka discovery отключен (EUREKA_DISCOVERY_ENABLED=false)
+2025-12-09 22:32:01,746 - control_manager - INFO -   - Загружен контроллер: eureka (EurekaController)
+2025-12-09 22:32:01,746 - haproxy_controller - INFO - Инициализация HAProxy клиентов
+2025-12-09 22:32:01,746 - plugins.haproxy_client - INFO - Парсинг socket_path: ipv4@192.168.1.1:7777
+2025-12-09 22:32:01,746 - plugins.haproxy_client - INFO - HAProxyClient инициализирован: type=tcp4, address=('192.168.1.1', 7777), timeout=5.0s
+2025-12-09 22:32:01,746 - plugins.haproxy_client - INFO - Получение информации о HAProxy
+2025-12-09 22:32:06,752 - plugins.haproxy_client - ERROR - Таймаут при выполнении команды: show info
+2025-12-09 22:32:06,752 - plugins.haproxy_client - ERROR - Ошибка получения информации о HAProxy: Таймаут при выполнении команды: show info
+2025-12-09 22:32:06,752 - plugins.haproxy_client - WARNING - Health check failed: Таймаут при выполнении команды: show info
+2025-12-09 22:32:06,752 - haproxy_controller - ERROR - HAProxy клиент 'default' не прошел health check: ipv4@192.168.1.1:7777
+2025-12-09 22:32:06,752 - haproxy_controller - WARNING - Не настроено ни одного HAProxy инстанса
+2025-12-09 22:32:06,752 - control_manager - INFO -   - Загружен контроллер: haproxy (HAProxyController)
+2025-12-09 22:32:06,752 - control_manager - INFO - Загружено контроллеров: 2
+2025-12-09 22:32:06,752 - control_manager - INFO -   - eureka
+2025-12-09 22:32:06,752 - control_manager - INFO -   - haproxy
+2025-12-09 22:32:06,752 - server - INFO - HTTP сервер (threading) создан на 0.0.0.0:11011
+2025-12-09 22:32:11,093 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:32:11,106 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:32:11,106 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:32:11,106 - discovery - INFO - Discovery completed in 14ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:40:45,545 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:40:45,557 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:40:45,557 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:40:45,557 - discovery - INFO - Discovery completed in 14ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:40:45,568 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:40:45,580 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:40:45,580 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:40:45,581 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:40:45,587 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:40:45,598 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:40:45,598 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:40:45,599 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:40:50,802 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:40:50,814 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:40:50,814 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:40:50,815 - discovery - INFO - Discovery completed in 14ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:40:50,816 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:40:50,827 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:40:50,827 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:40:50,827 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:40:50,828 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:40:50,840 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:40:50,840 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:40:50,840 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:40:50,841 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:40:50,854 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:40:50,854 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:40:50,854 - discovery - INFO - Discovery completed in 14ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:40:50,855 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:40:50,867 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:40:50,867 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:40:50,867 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,258 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,269 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,269 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,270 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,276 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,287 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,287 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,287 - discovery - INFO - Discovery completed in 12ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,293 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,304 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,305 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,305 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,311 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,323 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,323 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,324 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:03,330 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,341 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,342 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,342 - discovery - INFO - Discovery completed in 13ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,347 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,359 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,359 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,359 - discovery - INFO - Discovery completed in 12ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,365 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,376 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,376 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,376 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:03,382 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,395 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,395 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,395 - discovery - INFO - Discovery completed in 14ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:03,401 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,412 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,412 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,412 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,418 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,430 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,431 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,431 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:03,436 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,448 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,448 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,448 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,453 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,465 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,465 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,465 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,472 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,482 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,482 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,483 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:03,489 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,500 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,500 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,500 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,507 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,518 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,518 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,518 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,524 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,535 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,536 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,536 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,542 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,553 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,553 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,553 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,559 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,569 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,570 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,570 - discovery - INFO - Discovery completed in 11ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:03,575 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,587 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,587 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,587 - discovery - INFO - Discovery completed in 12ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,592 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,603 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,603 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,604 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:03,609 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,621 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,621 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,621 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,626 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,637 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,638 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,638 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,643 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,655 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,655 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,655 - discovery - INFO - Discovery completed in 13ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,661 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,674 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,674 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,674 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:03,679 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,690 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,690 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,690 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:03,696 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,708 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,709 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,709 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:03,714 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,726 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,726 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,726 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,732 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,743 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,743 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,743 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,749 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,760 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,760 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,760 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,766 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,777 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,777 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,777 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,783 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,795 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,795 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,795 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,801 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,813 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,813 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,813 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,819 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,830 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,830 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,830 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,836 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,847 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,847 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,847 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,852 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,864 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,864 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,864 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,869 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,880 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,880 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,881 - discovery - INFO - Discovery completed in 12ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,886 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,898 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,898 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,898 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,904 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,914 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,914 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,914 - discovery - INFO - Discovery completed in 11ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:03,920 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,931 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,931 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,931 - discovery - INFO - Discovery completed in 12ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:03,937 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,950 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,950 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,950 - discovery - INFO - Discovery completed in 15ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-09 22:41:03,956 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,968 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,968 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,968 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:03,974 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:03,985 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:03,985 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:03,985 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:03,991 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,002 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,002 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,003 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,008 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,019 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,019 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,019 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,024 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,036 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,036 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,036 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,041 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,052 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,052 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,052 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,058 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,069 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,069 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,069 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,075 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,086 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,086 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,086 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,092 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,103 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,103 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,104 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,110 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,120 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,121 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,121 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,127 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,138 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,138 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,138 - discovery - INFO - Discovery completed in 12ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,144 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,154 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,154 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,155 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,160 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,172 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,172 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,172 - discovery - INFO - Discovery completed in 12ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,177 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,188 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,188 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,188 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,194 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,207 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,207 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,207 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:04,213 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,224 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,224 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,224 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,230 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,240 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,241 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,241 - discovery - INFO - Discovery completed in 11ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,246 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,260 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,260 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,260 - discovery - INFO - Discovery completed in 15ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-09 22:41:04,266 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,276 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,276 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,277 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,282 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,293 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,293 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,293 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,299 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,310 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,310 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,311 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,316 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,327 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,327 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,327 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,332 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,344 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,344 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,344 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,350 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,362 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,362 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,362 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:04,368 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,379 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,379 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,379 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,385 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,396 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,396 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,396 - discovery - INFO - Discovery completed in 12ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,402 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,414 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,414 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,414 - discovery - INFO - Discovery completed in 13ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:04,420 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,431 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,431 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,432 - discovery - INFO - Discovery completed in 12ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,437 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,448 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,448 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,448 - discovery - INFO - Discovery completed in 12ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,453 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,464 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,465 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,465 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,470 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,483 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,483 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,483 - discovery - INFO - Discovery completed in 14ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:04,490 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,503 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,503 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,503 - discovery - INFO - Discovery completed in 15ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-09 22:41:04,510 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,520 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,521 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,521 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,528 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,542 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,543 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,543 - discovery - INFO - Discovery completed in 15ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 15ms)] FAILED=[none]
+2025-12-09 22:41:04,549 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,562 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,562 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,562 - discovery - INFO - Discovery completed in 14ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-09 22:41:04,568 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,579 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,579 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,580 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,586 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,596 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,596 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,596 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,602 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,613 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,613 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,614 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,619 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,631 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,631 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,631 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,637 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,650 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,650 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,650 - discovery - INFO - Discovery completed in 14ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-09 22:41:04,656 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,667 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,667 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,667 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,673 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,684 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,684 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,684 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,690 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,703 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,703 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,704 - discovery - INFO - Discovery completed in 14ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:04,710 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,721 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,721 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,722 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,727 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,738 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,738 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,739 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,744 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,755 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,755 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,756 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,761 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,774 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,774 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,774 - discovery - INFO - Discovery completed in 14ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:04,779 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,791 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,791 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,791 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 2ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,796 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,809 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,809 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,810 - discovery - INFO - Discovery completed in 14ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-09 22:41:04,815 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,830 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,831 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,831 - discovery - INFO - Discovery completed in 16ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 16ms)] FAILED=[none]
+2025-12-09 22:41:04,836 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,847 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,847 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,848 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,853 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,863 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,864 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,864 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 11ms)] FAILED=[none]
+2025-12-09 22:41:04,869 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,881 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,881 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,881 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:04,887 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,899 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,899 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,899 - discovery - INFO - Discovery completed in 13ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,904 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,916 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,916 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,916 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,922 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,934 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,934 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,934 - discovery - INFO - Discovery completed in 13ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 22:41:04,939 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,953 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,953 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,954 - discovery - INFO - Discovery completed in 15ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-09 22:41:04,962 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,971 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,972 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,972 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,978 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:04,990 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:04,990 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:04,990 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:41:04,997 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:41:05,007 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:41:05,007 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:41:05,008 - discovery - INFO - Discovery completed in 12ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-09 22:49:42,718 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 22:49:42,729 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 22:49:42,730 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 22:49:42,730 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 23:15:10,217 - __main__ - INFO - Received SIGTERM, beginning graceful shutdown...
+2025-12-09 23:15:10,217 - __main__ - INFO - Stopping HTTP server...
+2025-12-09 23:15:15,218 - __main__ - INFO - HTTP server stopped ✓
+2025-12-09 23:15:15,218 - __main__ - INFO - The agent has been stopped successfully.
+2025-12-09 23:15:17,379 - root - INFO - Starting Application Discovery Agent...
+2025-12-09 23:15:17,379 - __main__ - INFO - Initializing discovery manager...
+2025-12-09 23:15:17,379 - discovery - INFO - Loading plugins from: /site/app/FAgent/project/plugins
+2025-12-09 23:15:17,404 - eureka_discoverer - INFO - Eureka discoverer отключен в конфигурации
+2025-12-09 23:15:17,404 - discovery - INFO -   - Loaded discoverer: EurekaDiscoverer
+2025-12-09 23:15:17,418 - docker_discoverer - INFO - Docker discoverer инициализирован
+2025-12-09 23:15:17,418 - discovery - INFO -   - Loaded discoverer: DockerDiscoverer
+2025-12-09 23:15:17,419 - svc_app_discoverer - INFO - SVCAppDiscoverer инициализирован. Поддерживаемые расширения: jar, war
+2025-12-09 23:15:17,419 - svc_app_discoverer - WARNING - Директория дистрибутивов не существует: /site/share/htdoc
+2025-12-09 23:15:17,419 - discovery - INFO -   - Loaded discoverer: SVCAppDiscoverer
+2025-12-09 23:15:17,419 - __main__ - INFO - Plugins loaded: 3
+2025-12-09 23:15:17,419 - __main__ - INFO -   - EurekaDiscoverer
+2025-12-09 23:15:17,419 - __main__ - INFO -   - DockerDiscoverer
+2025-12-09 23:15:17,419 - __main__ - INFO -   - SVCAppDiscoverer
+2025-12-09 23:15:17,419 - __main__ - INFO - Выполнение пробного обнаружения...
+2025-12-09 23:15:17,420 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 23:15:17,433 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 23:15:17,434 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 23:15:17,434 - discovery - INFO - Discovery completed in 15ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-09 23:15:17,434 - __main__ - INFO - Trial discovery completed. Apps found: 5
+2025-12-09 23:15:17,434 - __main__ - INFO - ============================================================
+2025-12-09 23:15:17,434 - __main__ - INFO - Starting HTTP server on 0.0.0.0:11011
+2025-12-09 23:15:17,434 - __main__ - INFO - ============================================================
+2025-12-09 23:15:17,434 - server - INFO - Инициализация ControlManager
+2025-12-09 23:15:17,434 - control_manager - INFO - Загрузка контроллеров из: /site/app/FAgent/project/controllers
+2025-12-09 23:15:17,434 - eureka_controller - WARNING - Eureka discovery отключен (EUREKA_DISCOVERY_ENABLED=false)
+2025-12-09 23:15:17,434 - control_manager - INFO -   - Загружен контроллер: eureka (EurekaController)
+2025-12-09 23:15:17,435 - haproxy_controller - INFO - Инициализация HAProxy клиентов
+2025-12-09 23:15:17,435 - plugins.haproxy_client - INFO - Парсинг socket_path: ipv4@192.168.1.1:7777
+2025-12-09 23:15:17,435 - plugins.haproxy_client - INFO - HAProxyClient инициализирован: type=tcp4, address=('192.168.1.1', 7777), timeout=5.0s
+2025-12-09 23:15:17,435 - plugins.haproxy_client - INFO - Получение информации о HAProxy
+2025-12-09 23:15:22,440 - plugins.haproxy_client - ERROR - Таймаут при выполнении команды: show info
+2025-12-09 23:15:22,440 - plugins.haproxy_client - ERROR - Ошибка получения информации о HAProxy: Таймаут при выполнении команды: show info
+2025-12-09 23:15:22,440 - plugins.haproxy_client - WARNING - Health check failed: Таймаут при выполнении команды: show info
+2025-12-09 23:15:22,440 - haproxy_controller - ERROR - HAProxy клиент 'default' не прошел health check: ipv4@192.168.1.1:7777
+2025-12-09 23:15:22,440 - haproxy_controller - WARNING - Не настроено ни одного HAProxy инстанса
+2025-12-09 23:15:22,440 - control_manager - INFO -   - Загружен контроллер: haproxy (HAProxyController)
+2025-12-09 23:15:22,440 - control_manager - INFO - Загружено контроллеров: 2
+2025-12-09 23:15:22,440 - control_manager - INFO -   - eureka
+2025-12-09 23:15:22,440 - control_manager - INFO -   - haproxy
+2025-12-09 23:15:22,441 - server - INFO - HTTP сервер (threading) создан на 0.0.0.0:11011
+2025-12-09 23:15:28,370 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 23:15:28,382 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 23:15:28,382 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 23:15:28,382 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]

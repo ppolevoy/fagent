@@ -58,3 +58,8 @@ class Config:
     EUREKA_HOST = os.getenv("EUREKA_HOST", "fdse.f.ftc.ru")
     EUREKA_PORT = int(os.getenv("EUREKA_PORT", "8761"))
     EUREKA_REQUEST_TIMEOUT = int(os.getenv("EUREKA_REQUEST_TIMEOUT", "10"))
+
+    # Discovery параллелизм
+    DISCOVERY_PLUGIN_TIMEOUT_SECONDS = float(os.getenv("DISCOVERY_PLUGIN_TIMEOUT", "15.0"))
+    DISCOVERY_TOTAL_TIMEOUT_SECONDS = float(os.getenv("DISCOVERY_TOTAL_TIMEOUT", "30.0"))
+    DISCOVERY_PARALLEL_WORKERS = int(os.getenv("DISCOVERY_PARALLEL_WORKERS", "3"))

@@ -155,47 +155,6 @@ class DockerDiscoverer(AbstractDiscoverer):
         else:
             return "unknown"
 
-    def _enrich_with_eureka(self, ip: str, port: int) -> dict:
-        """
-        Обогащение данных Docker контейнера информацией из Eureka.
-
-        Проверяет зарегистрировано ли приложение с данным IP:port в Eureka
-        и возвращает дополнительные метаданные.
-
-        Args:
-            ip: IP адрес контейнера
-            port: Порт контейнера
-
-        Returns:
-            Словарь с Eureka метаданными или пустой словарь
-        """
-        if not self.eureka_client or not port:
-            return {}
-
-        try:
-            eureka_app = self.eureka_client.find_app_by_ip_port(ip, port)
-
-            if eureka_app:
-                # Приложение найдено в Eureka
-                return {
-                    "eureka_registered": True,
-                    "eureka_instance_id": eureka_app.get("instance_id", ""),
-                    "eureka_app_name": eureka_app.get("app_name", ""),
-                    "eureka_status": eureka_app.get("status", "UNKNOWN"),
-                    "eureka_url": eureka_app.get("home_page_url", ""),
-                    "eureka_health_url": eureka_app.get("health_check_url", ""),
-                    "eureka_vip": eureka_app.get("vip_address", "")
-                }
-            else:
-                # Приложение не зарегистрировано в Eureka
-                return {
-                    "eureka_registered": False
-                }
-
-        except Exception as e:
-            logger.debug(f"Ошибка обогащения Eureka данными для {ip}:{port}: {e}")
-            return {}
-
     def _format_start_time(self, start_time: str) -> str:
         """
         Форматирование времени запуска контейнера

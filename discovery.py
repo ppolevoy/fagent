@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 import importlib.util
 import inspect
+import threading
 from pathlib import Path
 
 from models import ApplicationInfo
@@ -26,6 +27,7 @@ class DiscoveryManager:
 
     def __init__(self):
         self.discoverers: List[AbstractDiscoverer] = []
+        self._lock = threading.Lock()  # Защита от race conditions при параллельных запросах
         self._load_plugins()
 
     def _load_plugins(self):
@@ -56,12 +58,13 @@ class DiscoveryManager:
     
     def run_discovery(self) -> List[ApplicationInfo]:
         """Запускает обнаружение на всех загруженных плагинах."""
-        all_apps = []
-        for discoverer in self.discoverers:
-            try:
-                apps = discoverer.discover()
-                all_apps.extend(apps)
-            except Exception as e:
-                logger.info(f"Error running discoverer {type(discoverer).__name__}: {e}")
-        
-        return all_apps
+        with self._lock:  # Thread-safe: только один поток выполняет discovery одновременно
+            all_apps = []
+            for discoverer in self.discoverers:
+                try:
+                    apps = discoverer.discover()
+                    all_apps.extend(apps)
+                except Exception as e:
+                    logger.info(f"Error running discoverer {type(discoverer).__name__}: {e}")
+
+            return all_apps

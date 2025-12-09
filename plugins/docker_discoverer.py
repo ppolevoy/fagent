@@ -226,6 +226,93 @@ class DockerDiscoverer(AbstractDiscoverer):
             logger.debug(f"Ошибка форматирования времени {start_time}: {e}")
             return start_time
 
+    def _extract_container_details(self, container: dict) -> dict:
+        """
+        Извлечение деталей контейнера из _container_obj (без дополнительных API вызовов).
+
+        Args:
+            container: Словарь с данными контейнера от get_containers()
+
+        Returns:
+            dict с pid, start_time, compose_dir
+        """
+        container_obj = container.get('_container_obj')
+
+        if not container_obj:
+            # Fallback на старый метод если объект недоступен
+            container_id = container.get('ID', '')
+            return {
+                'pid': self.client.get_container_pid(container_id) if container_id else None,
+                'start_time': self.client.get_container_start_time(container_id) if container_id else None,
+                'compose_dir': self.client.get_container_compose_dir(container_id) if container_id else None
+            }
+
+        # Быстрый путь: извлекаем из уже загруженного объекта
+        try:
+            state = container_obj.attrs.get('State', {})
+            pid = state.get('Pid')
+            if pid == 0:
+                pid = None
+
+            start_time = state.get('StartedAt')
+            if start_time == "0001-01-01T00:00:00Z":
+                start_time = None
+
+            # Compose директория из labels
+            labels = container_obj.labels or {}
+            compose_path = labels.get('com.docker.compose.project.config_files')
+            compose_dir = None
+            if compose_path:
+                compose_dir = os.path.dirname(compose_path) if os.path.isfile(compose_path) else compose_path
+
+            return {
+                'pid': pid,
+                'start_time': start_time,
+                'compose_dir': compose_dir
+            }
+
+        except Exception as e:
+            logger.warning(f"Ошибка извлечения деталей контейнера: {e}")
+            return {'pid': None, 'start_time': None, 'compose_dir': None}
+
+    def _load_eureka_apps_map(self) -> dict:
+        """
+        Предзагрузка всех приложений из Eureka в словарь для быстрого поиска.
+
+        Returns:
+            dict: Словарь {ip:port -> eureka_app_data}
+        """
+        eureka_map = {}
+
+        if not self.eureka_client:
+            return eureka_map
+
+        try:
+            apps = self.eureka_client.get_applications()
+
+            for app in apps:
+                ip = app.get('ip', '')
+                port = app.get('port', 0)
+
+                if ip and port:
+                    key = f"{ip}:{port}"
+                    eureka_map[key] = {
+                        "eureka_registered": True,
+                        "eureka_instance_id": app.get("instance_id", ""),
+                        "eureka_app_name": app.get("app_name", ""),
+                        "eureka_status": app.get("status", "UNKNOWN"),
+                        "eureka_url": app.get("home_page_url", ""),
+                        "eureka_health_url": app.get("health_check_url", ""),
+                        "eureka_vip": app.get("vip_address", "")
+                    }
+
+            logger.debug(f"Загружено {len(eureka_map)} приложений из Eureka")
+
+        except Exception as e:
+            logger.warning(f"Ошибка загрузки приложений из Eureka: {e}")
+
+        return eureka_map
+
     def discover(self) -> List[ApplicationInfo]:
         """
         Обнаружение Docker контейнеров
@@ -249,6 +336,12 @@ class DockerDiscoverer(AbstractDiscoverer):
 
             server_ip = self._get_server_ip()
 
+            # Предзагружаем Eureka данные ОДИН раз (вместо запроса на каждый контейнер)
+            eureka_apps_map = {}
+            if self.eureka_client:
+                eureka_apps_map = self._load_eureka_apps_map()
+                logger.debug(f"Eureka: предзагружено {len(eureka_apps_map)} приложений")
+
             for container in containers:
                 try:
                     # Извлекаем базовую информацию
@@ -268,14 +361,11 @@ class DockerDiscoverer(AbstractDiscoverer):
                     # Извлекаем порт
                     port = self.client.parse_port_mapping(ports_string)
 
-                    # Получаем PID
-                    pid = self.client.get_container_pid(container_id)
-
-                    # Получаем docker-compose директорию
-                    compose_dir = self.client.get_container_compose_dir(container_id)
-
-                    # Получаем время запуска
-                    start_time = self.client.get_container_start_time(container_id)
+                    # Извлекаем всё из уже загруженного объекта (0 дополнительных API вызовов)
+                    details = self._extract_container_details(container)
+                    pid = details['pid']
+                    compose_dir = details['compose_dir']
+                    start_time = details['start_time']
                     if start_time:
                         start_time = self._format_start_time(start_time)
                     else:
@@ -301,13 +391,15 @@ class DockerDiscoverer(AbstractDiscoverer):
                         "docker_state": base_status
                     }
 
-                    # Обогащение данными из Eureka (если включено)
-                    if self.eureka_client and port:
-                        eureka_data = self._enrich_with_eureka(server_ip, port)
+                    # Обогащение данными из Eureka: O(1) lookup вместо HTTP запроса
+                    if eureka_apps_map and port:
+                        eureka_key = f"{server_ip}:{port}"
+                        eureka_data = eureka_apps_map.get(eureka_key)
                         if eureka_data:
                             metadata.update(eureka_data)
-                            if eureka_data.get("eureka_registered"):
-                                logger.debug(f"Docker контейнер {container_name} зарегистрирован в Eureka: {eureka_data.get('eureka_instance_id')}")
+                            logger.debug(f"Docker контейнер {container_name} найден в Eureka: {eureka_data.get('eureka_instance_id')}")
+                        else:
+                            metadata["eureka_registered"] = False
 
                     # Создаем ApplicationInfo
                     app_info = ApplicationInfo(

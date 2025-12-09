@@ -3,7 +3,7 @@ import json
 import socket
 import urllib.parse
 import logging
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import List, Dict, Any
 from datetime import datetime, timedelta
 
@@ -346,7 +346,7 @@ def run_server(discovery_manager: DiscoveryManager, control_manager: ControlMana
     AgentRequestHandler.control_manager = control_manager
 
     # Создаем сервер
-    httpd = HTTPServer(server_address, AgentRequestHandler)
-    logger.info(f"HTTP сервер создан на {Config.SERVER_HOST}:{Config.SERVER_PORT}")
+    httpd = ThreadingHTTPServer(server_address, AgentRequestHandler)
+    logger.info(f"HTTP сервер (threading) создан на {Config.SERVER_HOST}:{Config.SERVER_PORT}")
 
     return httpd

@@ -3156,3 +3156,182 @@
 2025-12-09 23:15:28,382 - plugins.docker_client - INFO - Получено 5 контейнеров
 2025-12-09 23:15:28,382 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
 2025-12-09 23:15:28,382 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 23:47:53,369 - __main__ - INFO - Received SIGTERM, beginning graceful shutdown...
+2025-12-09 23:47:53,369 - __main__ - INFO - Stopping HTTP server...
+2025-12-09 23:47:58,370 - __main__ - INFO - HTTP server stopped ✓
+2025-12-09 23:47:58,370 - __main__ - INFO - The agent has been stopped successfully.
+2025-12-09 23:48:00,529 - root - INFO - Starting Application Discovery Agent...
+2025-12-09 23:48:00,529 - __main__ - INFO - Initializing discovery manager...
+2025-12-09 23:48:00,529 - discovery - INFO - Loading plugins from: /site/app/FAgent/project/plugins
+2025-12-09 23:48:00,553 - eureka_discoverer - INFO - Eureka discoverer отключен в конфигурации
+2025-12-09 23:48:00,553 - discovery - INFO -   - Loaded discoverer: EurekaDiscoverer
+2025-12-09 23:48:00,567 - docker_discoverer - INFO - Docker discoverer инициализирован
+2025-12-09 23:48:00,567 - discovery - INFO -   - Loaded discoverer: DockerDiscoverer
+2025-12-09 23:48:00,567 - svc_app_discoverer - INFO - SVCAppDiscoverer инициализирован. Платформа: linux, Режим: process, Поддерживаемые расширения: jar, war
+2025-12-09 23:48:00,567 - svc_app_discoverer - WARNING - Директория дистрибутивов не существует: /site/share/htdoc
+2025-12-09 23:48:00,567 - discovery - INFO -   - Loaded discoverer: SVCAppDiscoverer
+2025-12-09 23:48:00,567 - __main__ - INFO - Plugins loaded: 3
+2025-12-09 23:48:00,567 - __main__ - INFO -   - EurekaDiscoverer
+2025-12-09 23:48:00,567 - __main__ - INFO -   - DockerDiscoverer
+2025-12-09 23:48:00,567 - __main__ - INFO -   - SVCAppDiscoverer
+2025-12-09 23:48:00,567 - __main__ - INFO - Выполнение пробного обнаружения...
+2025-12-09 23:48:00,568 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 23:48:00,581 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 23:48:00,581 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 23:48:00,582 - discovery - INFO - Discovery completed in 14ms: OK=[SVCAppDiscoverer(0 apps, 0ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-09 23:48:00,582 - __main__ - INFO - Trial discovery completed. Apps found: 5
+2025-12-09 23:48:00,582 - __main__ - INFO - ============================================================
+2025-12-09 23:48:00,582 - __main__ - INFO - Starting HTTP server on 0.0.0.0:11011
+2025-12-09 23:48:00,582 - __main__ - INFO - ============================================================
+2025-12-09 23:48:00,582 - server - INFO - Инициализация ControlManager
+2025-12-09 23:48:00,582 - control_manager - INFO - Загрузка контроллеров из: /site/app/FAgent/project/controllers
+2025-12-09 23:48:00,582 - eureka_controller - WARNING - Eureka discovery отключен (EUREKA_DISCOVERY_ENABLED=false)
+2025-12-09 23:48:00,582 - control_manager - INFO -   - Загружен контроллер: eureka (EurekaController)
+2025-12-09 23:48:00,583 - haproxy_controller - INFO - Инициализация HAProxy клиентов
+2025-12-09 23:48:00,583 - plugins.haproxy_client - INFO - Парсинг socket_path: ipv4@192.168.1.1:7777
+2025-12-09 23:48:00,583 - plugins.haproxy_client - INFO - HAProxyClient инициализирован: type=tcp4, address=('192.168.1.1', 7777), timeout=5.0s
+2025-12-09 23:48:00,583 - plugins.haproxy_client - INFO - Получение информации о HAProxy
+2025-12-09 23:48:05,588 - plugins.haproxy_client - ERROR - Таймаут при выполнении команды: show info
+2025-12-09 23:48:05,588 - plugins.haproxy_client - ERROR - Ошибка получения информации о HAProxy: Таймаут при выполнении команды: show info
+2025-12-09 23:48:05,588 - plugins.haproxy_client - WARNING - Health check failed: Таймаут при выполнении команды: show info
+2025-12-09 23:48:05,588 - haproxy_controller - ERROR - HAProxy клиент 'default' не прошел health check: ipv4@192.168.1.1:7777
+2025-12-09 23:48:05,588 - haproxy_controller - WARNING - Не настроено ни одного HAProxy инстанса
+2025-12-09 23:48:05,588 - control_manager - INFO -   - Загружен контроллер: haproxy (HAProxyController)
+2025-12-09 23:48:05,588 - control_manager - INFO - Загружено контроллеров: 2
+2025-12-09 23:48:05,588 - control_manager - INFO -   - eureka
+2025-12-09 23:48:05,588 - control_manager - INFO -   - haproxy
+2025-12-09 23:48:05,588 - server - INFO - HTTP сервер (threading) создан на 0.0.0.0:11011
+2025-12-09 23:48:26,959 - svc_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 23:48:26,971 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 23:48:26,972 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 23:48:26,972 - discovery - INFO - Discovery completed in 14ms: OK=[EurekaDiscoverer(0 apps, 0ms), SVCAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-09 23:58:04,356 - __main__ - INFO - Received SIGTERM, beginning graceful shutdown...
+2025-12-09 23:58:04,356 - __main__ - INFO - Stopping HTTP server...
+2025-12-09 23:58:09,356 - __main__ - INFO - HTTP server stopped ✓
+2025-12-09 23:58:09,356 - __main__ - INFO - The agent has been stopped successfully.
+2025-12-09 23:58:11,526 - root - INFO - Starting Application Discovery Agent...
+2025-12-09 23:58:11,526 - __main__ - INFO - Initializing discovery manager...
+2025-12-09 23:58:11,526 - discovery - INFO - Loading plugins from: /site/app/FAgent/project/plugins
+2025-12-09 23:58:11,550 - eureka_discoverer - INFO - Eureka discoverer отключен в конфигурации
+2025-12-09 23:58:11,550 - discovery - INFO -   - Loaded discoverer: EurekaDiscoverer
+2025-12-09 23:58:11,553 - site_app_discoverer - INFO - SiteAppDiscoverer инициализирован. Платформа: linux, Режим: process, Поддерживаемые расширения: jar, war
+2025-12-09 23:58:11,554 - site_app_discoverer - WARNING - Директория дистрибутивов не существует: /site/share/htdoc
+2025-12-09 23:58:11,554 - discovery - INFO -   - Loaded discoverer: SiteAppDiscoverer
+2025-12-09 23:58:11,566 - docker_discoverer - INFO - Docker discoverer инициализирован
+2025-12-09 23:58:11,567 - discovery - INFO -   - Loaded discoverer: DockerDiscoverer
+2025-12-09 23:58:11,567 - __main__ - INFO - Plugins loaded: 3
+2025-12-09 23:58:11,567 - __main__ - INFO -   - EurekaDiscoverer
+2025-12-09 23:58:11,567 - __main__ - INFO -   - SiteAppDiscoverer
+2025-12-09 23:58:11,567 - __main__ - INFO -   - DockerDiscoverer
+2025-12-09 23:58:11,567 - __main__ - INFO - Выполнение пробного обнаружения...
+2025-12-09 23:58:11,568 - site_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-09 23:58:11,581 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-09 23:58:11,581 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-09 23:58:11,581 - discovery - INFO - Discovery completed in 15ms: OK=[EurekaDiscoverer(0 apps, 0ms), SiteAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-09 23:58:11,581 - __main__ - INFO - Trial discovery completed. Apps found: 5
+2025-12-09 23:58:11,581 - __main__ - INFO - ============================================================
+2025-12-09 23:58:11,581 - __main__ - INFO - Starting HTTP server on 0.0.0.0:11011
+2025-12-09 23:58:11,581 - __main__ - INFO - ============================================================
+2025-12-09 23:58:11,581 - server - INFO - Инициализация ControlManager
+2025-12-09 23:58:11,581 - control_manager - INFO - Загрузка контроллеров из: /site/app/FAgent/project/controllers
+2025-12-09 23:58:11,582 - eureka_controller - WARNING - Eureka discovery отключен (EUREKA_DISCOVERY_ENABLED=false)
+2025-12-09 23:58:11,582 - control_manager - INFO -   - Загружен контроллер: eureka (EurekaController)
+2025-12-09 23:58:11,582 - haproxy_controller - INFO - Инициализация HAProxy клиентов
+2025-12-09 23:58:11,582 - plugins.haproxy_client - INFO - Парсинг socket_path: ipv4@192.168.1.1:7777
+2025-12-09 23:58:11,582 - plugins.haproxy_client - INFO - HAProxyClient инициализирован: type=tcp4, address=('192.168.1.1', 7777), timeout=5.0s
+2025-12-09 23:58:11,583 - plugins.haproxy_client - INFO - Получение информации о HAProxy
+2025-12-09 23:58:16,583 - plugins.haproxy_client - ERROR - Таймаут при выполнении команды: show info
+2025-12-09 23:58:16,583 - plugins.haproxy_client - ERROR - Ошибка получения информации о HAProxy: Таймаут при выполнении команды: show info
+2025-12-09 23:58:16,583 - plugins.haproxy_client - WARNING - Health check failed: Таймаут при выполнении команды: show info
+2025-12-09 23:58:16,583 - haproxy_controller - ERROR - HAProxy клиент 'default' не прошел health check: ipv4@192.168.1.1:7777
+2025-12-09 23:58:16,583 - haproxy_controller - WARNING - Не настроено ни одного HAProxy инстанса
+2025-12-09 23:58:16,583 - control_manager - INFO -   - Загружен контроллер: haproxy (HAProxyController)
+2025-12-09 23:58:16,583 - control_manager - INFO - Загружено контроллеров: 2
+2025-12-09 23:58:16,583 - control_manager - INFO -   - eureka
+2025-12-09 23:58:16,583 - control_manager - INFO -   - haproxy
+2025-12-09 23:58:16,584 - server - INFO - HTTP сервер (threading) создан на 0.0.0.0:11011
+2025-12-10 00:38:58,072 - site_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 00:38:58,086 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 00:38:58,086 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 00:38:58,087 - discovery - INFO - Discovery completed in 15ms: OK=[SiteAppDiscoverer(0 apps, 1ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-10 00:38:58,093 - site_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 00:38:58,105 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 00:38:58,105 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 00:38:58,105 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SiteAppDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-10 00:53:40,845 - site_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 00:53:40,861 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 00:53:40,861 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 00:53:40,862 - discovery - INFO - Discovery completed in 17ms: OK=[EurekaDiscoverer(0 apps, 0ms), SiteAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 16ms)] FAILED=[none]
+2025-12-10 00:53:40,870 - site_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 00:53:40,885 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 00:53:40,885 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 00:53:40,886 - discovery - INFO - Discovery completed in 16ms: OK=[EurekaDiscoverer(0 apps, 0ms), SiteAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 15ms)] FAILED=[none]
+2025-12-10 01:00:27,492 - site_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 01:00:27,504 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 01:00:27,504 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 01:00:27,505 - discovery - INFO - Discovery completed in 14ms: OK=[EurekaDiscoverer(0 apps, 0ms), SiteAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 13ms)] FAILED=[none]
+2025-12-10 01:00:27,510 - site_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 01:00:27,522 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 01:00:27,522 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 01:00:27,523 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SiteAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-10 01:06:07,992 - site_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 01:06:08,006 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 01:06:08,006 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 01:06:08,006 - discovery - INFO - Discovery completed in 15ms: OK=[SiteAppDiscoverer(0 apps, 1ms), EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 14ms)] FAILED=[none]
+2025-12-10 01:06:08,013 - site_app_discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 01:06:08,025 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 01:06:08,025 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 01:06:08,025 - discovery - INFO - Discovery completed in 13ms: OK=[EurekaDiscoverer(0 apps, 0ms), SiteAppDiscoverer(0 apps, 1ms), DockerDiscoverer(5 apps, 12ms)] FAILED=[none]
+2025-12-10 02:05:30,194 - __main__ - INFO - Received SIGTERM, beginning graceful shutdown...
+2025-12-10 02:05:30,194 - __main__ - INFO - Stopping HTTP server...
+2025-12-10 02:05:35,195 - __main__ - INFO - HTTP server stopped ✓
+2025-12-10 02:05:35,195 - __main__ - INFO - The agent has been stopped successfully.
+2025-12-10 02:05:37,355 - root - INFO - Starting Application Discovery Agent...
+2025-12-10 02:05:37,355 - __main__ - INFO - Initializing discovery manager...
+2025-12-10 02:05:37,355 - discovery - INFO - Loading plugins from: /site/app/FAgent/project/plugins
+2025-12-10 02:05:37,383 - eureka_discoverer - INFO - Eureka discoverer отключен в конфигурации
+2025-12-10 02:05:37,384 - discovery - INFO -   - Loaded discoverer: EurekaDiscoverer
+2025-12-10 02:05:37,385 - plugins.site_app.discoverer - INFO - SiteAppDiscoverer инициализирован. Платформа: linux, Режим: process, Поддерживаемые расширения: jar, war
+2025-12-10 02:05:37,385 - plugins.site_app.discoverer - WARNING - Директория дистрибутивов не существует: /site/share/htdoc
+2025-12-10 02:05:37,385 - discovery - INFO -   - Loaded discoverer: SiteAppDiscoverer
+2025-12-10 02:05:37,399 - docker_discoverer - INFO - Docker discoverer инициализирован
+2025-12-10 02:05:37,399 - discovery - INFO -   - Loaded discoverer: DockerDiscoverer
+2025-12-10 02:05:37,399 - __main__ - INFO - Plugins loaded: 3
+2025-12-10 02:05:37,399 - __main__ - INFO -   - EurekaDiscoverer
+2025-12-10 02:05:37,399 - __main__ - INFO -   - SiteAppDiscoverer
+2025-12-10 02:05:37,399 - __main__ - INFO -   - DockerDiscoverer
+2025-12-10 02:05:37,399 - __main__ - INFO - Выполнение пробного обнаружения...
+2025-12-10 02:05:37,414 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 02:05:37,414 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 02:05:37,418 - plugins.site_app.discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 02:05:37,418 - discovery - INFO - Discovery completed in 19ms: OK=[EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 15ms), SiteAppDiscoverer(0 apps, 18ms)] FAILED=[none]
+2025-12-10 02:05:37,418 - __main__ - INFO - Trial discovery completed. Apps found: 5
+2025-12-10 02:05:37,418 - __main__ - INFO - ============================================================
+2025-12-10 02:05:37,418 - __main__ - INFO - Starting HTTP server on 0.0.0.0:11011
+2025-12-10 02:05:37,418 - __main__ - INFO - ============================================================
+2025-12-10 02:05:37,418 - server - INFO - Инициализация ControlManager
+2025-12-10 02:05:37,418 - control_manager - INFO - Загрузка контроллеров из: /site/app/FAgent/project/controllers
+2025-12-10 02:05:37,419 - eureka_controller - WARNING - Eureka discovery отключен (EUREKA_DISCOVERY_ENABLED=false)
+2025-12-10 02:05:37,419 - control_manager - INFO -   - Загружен контроллер: eureka (EurekaController)
+2025-12-10 02:05:37,419 - haproxy_controller - INFO - Инициализация HAProxy клиентов
+2025-12-10 02:05:37,419 - plugins.haproxy_client - INFO - Парсинг socket_path: ipv4@192.168.1.1:7777
+2025-12-10 02:05:37,419 - plugins.haproxy_client - INFO - HAProxyClient инициализирован: type=tcp4, address=('192.168.1.1', 7777), timeout=5.0s
+2025-12-10 02:05:37,419 - plugins.haproxy_client - INFO - Получение информации о HAProxy
+2025-12-10 02:05:42,424 - plugins.haproxy_client - ERROR - Таймаут при выполнении команды: show info
+2025-12-10 02:05:42,424 - plugins.haproxy_client - ERROR - Ошибка получения информации о HAProxy: Таймаут при выполнении команды: show info
+2025-12-10 02:05:42,424 - plugins.haproxy_client - WARNING - Health check failed: Таймаут при выполнении команды: show info
+2025-12-10 02:05:42,424 - haproxy_controller - ERROR - HAProxy клиент 'default' не прошел health check: ipv4@192.168.1.1:7777
+2025-12-10 02:05:42,424 - haproxy_controller - WARNING - Не настроено ни одного HAProxy инстанса
+2025-12-10 02:05:42,424 - control_manager - INFO -   - Загружен контроллер: haproxy (HAProxyController)
+2025-12-10 02:05:42,424 - control_manager - INFO - Загружено контроллеров: 2
+2025-12-10 02:05:42,424 - control_manager - INFO -   - eureka
+2025-12-10 02:05:42,424 - control_manager - INFO -   - haproxy
+2025-12-10 02:05:42,424 - server - INFO - HTTP сервер (threading) создан на 0.0.0.0:11011
+2025-12-10 02:05:48,719 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 02:05:48,719 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 02:05:48,723 - plugins.site_app.discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 02:05:48,723 - discovery - INFO - Discovery completed in 23ms: OK=[EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms), SiteAppDiscoverer(0 apps, 22ms)] FAILED=[none]
+2025-12-10 02:06:00,241 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 02:06:00,242 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 02:06:00,245 - plugins.site_app.discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 02:06:00,245 - discovery - INFO - Discovery completed in 16ms: OK=[EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 12ms), SiteAppDiscoverer(0 apps, 16ms)] FAILED=[none]

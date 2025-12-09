@@ -18,14 +18,33 @@ class Config:
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )    
 
-    # Пути для SVC-плагина
-    SVC_APP_ROOT = Path(os.getenv("SVC_APP_ROOT", "/site/app"))
-    SVC_HTPDOC_ROOT = Path(os.getenv("SVC_HTPDOC_ROOT", "/site/share/htdoc"))
+    # Пути для Site App плагина
+    SITE_APP_ROOT = Path(os.getenv("SITE_APP_ROOT", "/site/app"))
+    SITE_HTPDOC_ROOT = Path(os.getenv("SITE_HTPDOC_ROOT", "/site/share/htdoc"))
 
     SUPPORTED_ARTIFACT_EXTENSIONS = os.getenv(
-        "SUPPORTED_ARTIFACT_EXTENSIONS", 
+        "SUPPORTED_ARTIFACT_EXTENSIONS",
         "jar,war"
-    ).split(',')    
+    ).split(',')
+
+    # Site App Discovery - включение/выключение
+    SITE_DISCOVERY_ENABLED = os.getenv("SITE_DISCOVERY_ENABLED", "true").lower() == "true"
+
+    # Режим определения статуса процессов на Linux: "systemd" или "process"
+    # На Solaris всегда используется svcs (параметр игнорируется)
+    SITE_PROCESS_MANAGER = os.getenv("SITE_PROCESS_MANAGER", "process")
+
+    # Паттерн имени сервиса systemd. Плейсхолдер: {app_name}
+    SITE_SYSTEMD_SERVICE_PATTERN = os.getenv("SITE_SYSTEMD_SERVICE_PATTERN", "{app_name}")
+
+    # Паттерн для pgrep. Плейсхолдер: {app_name}
+    SITE_PGREP_PATTERN = os.getenv("SITE_PGREP_PATTERN", "java.*{app_name}")
+
+    # Таймаут subprocess вызовов в секундах
+    SITE_SUBPROCESS_TIMEOUT = int(os.getenv("SITE_SUBPROCESS_TIMEOUT", "10"))
+
+    # Количество параллельных потоков для сканирования приложений
+    SITE_DISCOVERY_WORKERS = int(os.getenv("SITE_DISCOVERY_WORKERS", "4"))
 
     # Настройки безопасности
     SECURITY_ENABLED = os.getenv("AGENT_SECURITY_ENABLED", "false").lower() == "true"

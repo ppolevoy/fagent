@@ -1,27 +1,68 @@
-# plugins/svc_app_discoverer.py
+# plugins/site_app/discoverer.py
+"""
+Основной модуль обнаружения site-app приложений.
+
+Поддерживает:
+- Solaris: svcs (SMF)
+- Linux: systemd или pgrep
+"""
 import re
-import subprocess
+import sys
 import logging
 import json
+import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeoutError
 
 from discovery import AbstractDiscoverer
 from models import ApplicationInfo
 from config import Config
+from .shell_executor import ShellExecutor
+from .platforms import create_process_manager
 
 logger = logging.getLogger(__name__)
 
-class SVCAppDiscoverer(AbstractDiscoverer):
-    """Плагин для обнаружения приложений, управляемых через svc (Solaris)."""
+class SiteAppDiscoverer(AbstractDiscoverer):
+    """Плагин для обнаружения приложений в структуре /site/app (Solaris svcs / Linux systemd/process)."""
 
     ARTIFACT_CHECK_ORDER = ['war', 'jar', 'dir']
 
     def __init__(self):
         """Инициализация плагина с проверкой конфигурации"""
         super().__init__()
-        self.app_root = Config.SVC_APP_ROOT
-        self.htdoc_root = Config.SVC_HTPDOC_ROOT
+
+        # Определяем платформу
+        self.platform = self._detect_platform()
+
+        # Проверяем включен ли плагин
+        self.enabled = getattr(Config, 'SITE_DISCOVERY_ENABLED', True)
+
+        # Режим работы на Linux
+        self.process_manager = getattr(Config, 'SITE_PROCESS_MANAGER', 'process')
+        self.systemd_pattern = getattr(Config, 'SITE_SYSTEMD_SERVICE_PATTERN', '{app_name}')
+        self.pgrep_pattern = getattr(Config, 'SITE_PGREP_PATTERN', 'java.*{app_name}')
+
+        # Таймаут для subprocess вызовов
+        self.subprocess_timeout = getattr(Config, 'SITE_SUBPROCESS_TIMEOUT', 10)
+
+        # Количество параллельных потоков для сканирования
+        self.discovery_workers = getattr(Config, 'SITE_DISCOVERY_WORKERS', 4)
+
+        # ShellExecutor для централизованного выполнения команд
+        self.shell = ShellExecutor(timeout=self.subprocess_timeout, retries=1)
+
+        # ProcessManager через фабрику (Strategy pattern)
+        self.process_manager_impl = create_process_manager(
+            platform=self.platform,
+            mode=self.process_manager,
+            shell=self.shell,
+            systemd_pattern=self.systemd_pattern,
+            pgrep_pattern=self.pgrep_pattern
+        )
+
+        self.app_root = Config.SITE_APP_ROOT
+        self.htdoc_root = Config.SITE_HTPDOC_ROOT
 
         # Получаем список поддерживаемых расширений из конфигурации
         self.supported_extensions = getattr(
@@ -33,17 +74,38 @@ class SVCAppDiscoverer(AbstractDiscoverer):
         # Загружаем маппинг имен приложений
         self.name_mapping = self._load_name_mapping()
 
+        # Определяем режим работы для логирования
+        if self.platform == 'solaris':
+            mode = 'svcs'
+        else:
+            mode = self.process_manager
+
         logger.info(
-            f"SVCAppDiscoverer инициализирован. "
+            f"SiteAppDiscoverer инициализирован. "
+            f"Платформа: {self.platform}, Режим: {mode}, "
             f"Поддерживаемые расширения: {', '.join(self.supported_extensions)}"
         )
 
         if self.name_mapping:
             logger.info(f"Загружен маппинг для {len(self.name_mapping)} приложений")
 
+        # Кэш портов для оптимизации (заполняется один раз за discover())
+        self._cached_ports = None
+
         # Проверяем доступность директорий
         self._validate_paths()
-    
+
+    def _detect_platform(self) -> str:
+        """
+        Определяет платформу выполнения.
+
+        Returns:
+            str: 'solaris' или 'linux'
+        """
+        if sys.platform.startswith('sunos'):
+            return 'solaris'
+        return 'linux'
+
     def _validate_paths(self) -> None:
         """Проверка существования необходимых директорий"""
         if not self.app_root.exists():
@@ -92,110 +154,32 @@ class SVCAppDiscoverer(AbstractDiscoverer):
             logger.error(f"Ошибка при загрузке маппинга из {mapping_file}: {e}")
 
         return {}
-    
+
+    # ==================== Публичные методы ====================
+
     def _get_app_status(self, app_name: str) -> Tuple[str, str]:
         """
-        Получение статуса приложения через svcs.
-        
+        Получение статуса через ProcessManager (Strategy pattern).
+
         Args:
-            app_name: Имя приложения (сервиса)
-            
+            app_name: Имя приложения
+
         Returns:
             Tuple[str, str]: (статус, время_запуска)
         """
-        try:
-            result = subprocess.run(
-                ["svcs", "-Ho", "state,stime", app_name], 
-                capture_output=True, 
-                text=True,
-                timeout=10  # Таймаут для предотвращения зависания
-            )
-            output = result.stdout.strip()
-            if output:
-                parts = output.split(" ", 1)
-                state = parts[0]
-                start_time = parts[1].strip() if len(parts) > 1 else "Unknown"
-                
-                logger.debug(f"Статус {app_name}: {state}, запущен: {start_time}")
-                return state, start_time
-            else:
-                logger.warning(f"Пустой ответ от svcs для {app_name}")
-                
-        except subprocess.TimeoutExpired:
-            logger.error(f"Таймаут при получении статуса {app_name}")
-        except FileNotFoundError:
-            logger.error("Команда svcs не найдена.")
-        except Exception as e:
-            logger.error(f"Ошибка при получении статуса {app_name}: {e}")
-        
-        return "unknown", "Unknown"
+        return self.process_manager_impl.get_status(app_name)
 
     def _get_app_pid(self, app_name: str) -> Optional[int]:
         """
-        Получение основного PID процесса приложения через svcs -p.
+        Получение PID через ProcessManager (Strategy pattern).
 
         Args:
-            app_name: Имя приложения (сервиса)
+            app_name: Имя приложения
 
         Returns:
-            Optional[int]: PID основного процесса приложения или None
+            Optional[int]: PID процесса или None
         """
-        try:
-            result = subprocess.run(
-                ["svcs", "-p", "-H", app_name],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-
-            if result.returncode == 0 and result.stdout:
-                # Парсим вывод svcs -p -H
-                # Формат: STATE  STIME  CTID  [PID PROCESS_NAME]
-                # Строки с PID начинаются с пробелов
-                lines = result.stdout.strip().split('\n')
-
-                for line in lines:
-                    # Пропускаем строки заголовков (начинаются не с пробелов)
-                    if not line or not line[0].isspace():
-                        continue
-
-                    # Парсим строку с PID
-                    # Формат: "               STIME     PID PROCESS_NAME"
-                    # Нужно найти первое число (PID) в строке
-                    parts = line.strip().split()
-                    if len(parts) >= 2:
-                        # Ищем первый элемент, который можно преобразовать в int
-                        pid = None
-                        process_name = 'unknown'
-
-                        for i, part in enumerate(parts):
-                            try:
-                                pid = int(part)
-                                # Нашли PID, следующий элемент - имя процесса
-                                process_name = parts[i + 1] if i + 1 < len(parts) else 'unknown'
-                                break
-                            except ValueError:
-                                continue
-
-                        if pid:
-                            logger.debug(f"{app_name}: найден PID {pid} ({process_name})")
-                            return pid  # Возвращаем первый найденный PID
-                        else:
-                            logger.debug(f"Не удалось найти PID в строке: {line.strip()}")
-                            continue
-
-                logger.debug(f"{app_name}: не найдено запущенных процессов")
-            else:
-                logger.debug(f"Пустой ответ от svcs -p для {app_name}")
-
-        except subprocess.TimeoutExpired:
-            logger.error(f"Таймаут при получении PID для {app_name}")
-        except FileNotFoundError:
-            logger.error("Команда svcs не найдена.")
-        except Exception as e:
-            logger.error(f"Ошибка при получении PID для {app_name}: {e}")
-
-        return None
+        return self.process_manager_impl.get_pid(app_name)
 
     def _parse_tomcat_server_xml(self, app_name: str) -> Optional[int]:
         """
@@ -242,42 +226,51 @@ class SVCAppDiscoverer(AbstractDiscoverer):
 
     def _get_listening_ports_netstat(self) -> Dict[int, int]:
         """
-        Получение списка всех портов в состоянии LISTEN через netstat.
+        Получение списка всех портов в состоянии LISTEN.
+
+        На Solaris использует netstat -an -P tcp.
+        На Linux использует ss -tlnp.
 
         Returns:
             Dict[int, int]: Словарь {порт: pid} (pid может быть 0, если не удалось определить)
         """
         ports = {}
 
-        try:
-            # Solaris netstat с опцией -n для числового вывода
-            result = subprocess.run(
-                ["netstat", "-an", "-P", "tcp"],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
+        if self.platform == 'solaris':
+            # Solaris: netstat -an -P tcp
+            result = self.shell.run(["netstat", "-an", "-P", "tcp"])
 
-            if result.returncode == 0 and result.stdout:
-                lines = result.stdout.split('\n')
-
-                for line in lines:
+            if result.success and result.stdout:
+                for line in result.stdout.split('\n'):
                     if 'LISTEN' in line:
-                        # Формат Solaris: Local Address  Remote Address  State
-                        # Пример: *.8080  *.*  LISTEN или 0.0.0.0.8080  0.0.0.0.*  LISTEN
                         parts = line.split()
                         if len(parts) >= 1:
                             local_addr = parts[0]
-                            # Извлекаем порт (последняя цифра после точки или звездочки)
                             port_match = re.search(r'[.*](\d+)$', local_addr)
                             if port_match:
                                 port = int(port_match.group(1))
-                                ports[port] = 0  # PID пока неизвестен
+                                ports[port] = 0
+        else:
+            # Linux: ss -tlnp (предпочтительно)
+            result = self.shell.run(["ss", "-tlnp"])
 
-                logger.debug(f"Найдено {len(ports)} портов в состоянии LISTEN")
+            if result.success and result.stdout:
+                # Пропускаем заголовок
+                for line in result.stdout.split('\n')[1:]:
+                    if not line.strip():
+                        continue
+                    # Формат: State  Recv-Q  Send-Q  Local Address:Port  Peer Address:Port  Process
+                    # LISTEN  0  128  *:8080  *:*  users:(("java",pid=1234,fd=5))
+                    parts = line.split()
+                    if len(parts) >= 4:
+                        local_addr = parts[3]
+                        # Извлекаем порт: *:8080 или 0.0.0.0:8080 или [::]:8080
+                        if ':' in local_addr:
+                            port_str = local_addr.rsplit(':', 1)[1]
+                            if port_str.isdigit():
+                                ports[int(port_str)] = 0
 
-        except Exception as e:
-            logger.debug(f"Ошибка при получении портов через netstat: {e}")
+        logger.debug(f"Найдено {len(ports)} портов в состоянии LISTEN")
 
         return ports
 
@@ -302,26 +295,17 @@ class SVCAppDiscoverer(AbstractDiscoverer):
             logger.debug(f"{app_name}: порт {port} определен из server.xml")
             return port
 
-        # 2. Используем netstat как fallback
+        # 2. Используем кэшированные порты как fallback
         # Внимание: этот метод не привязан к конкретному PID,
         # поэтому может быть неточным если на сервере много приложений
-        logger.debug(f"{app_name}: пытаемся определить порт через netstat")
+        logger.debug(f"{app_name}: пытаемся определить порт через кэш портов")
 
-        # Получаем все слушающие порты
-        listening_ports = self._get_listening_ports_netstat()
+        # Используем кэшированные порты (если кэш пуст, получаем заново)
+        listening_ports = self._cached_ports if self._cached_ports is not None else self._get_listening_ports_netstat()
 
-        # Если нашли порты, возвращаем первый подходящий
-        # (это эвристика, в реальности нужна дополнительная логика)
-        if listening_ports:
-            # Можно попробовать найти порт, который соответствует паттерну
-            # Например, для Java приложений это обычно 8080, 8443, 9090 и т.д.
-            common_ports = [8080, 8443, 9090, 8081, 8082, 8083]
-            for common_port in common_ports:
-                if common_port in listening_ports:
-                    logger.debug(f"{app_name}: найден типичный порт {common_port} через netstat")
-                    return common_port
-
-        logger.debug(f"{app_name}: не удалось определить порт приложения")
+        # Без server.xml невозможно точно определить порт приложения
+        # Возвращаем None вместо эвристики с common_ports
+        logger.debug(f"{app_name}: не удалось определить порт приложения (server.xml не найден)")
         return None
 
     def _find_artifact(self, app_name: str) -> Tuple[Optional[Path], Optional[str]]:
@@ -515,18 +499,77 @@ class SVCAppDiscoverer(AbstractDiscoverer):
         metadata["app_path"] = str(self.app_root / app_name)
 
         # Источник данных
-        metadata["source"] = "svc"
+        metadata["source"] = "site-app"
 
         return metadata
+
+    def _process_single_app(self, name: str) -> Optional[ApplicationInfo]:
+        """
+        Обработка одного приложения для параллельного выполнения.
+
+        Args:
+            name: Имя приложения
+
+        Returns:
+            ApplicationInfo или None если приложение не найдено/ошибка
+        """
+        try:
+            # ОПТИМИЗАЦИЯ: Сначала проверяем артефакт (не требует subprocess)
+            artifact_path, artifact_type = self._find_artifact(name)
+
+            # Пропускаем приложения без артефакта ДО вызова subprocess
+            if not artifact_path:
+                logger.debug(f"{name}: артефакт не найден, приложение пропущено")
+                return None
+
+            # Получаем статус приложения (svcs/systemd/process)
+            status, start_time = self._get_app_status(name)
+
+            # Получаем PID процесса
+            pid = self._get_app_pid(name)
+
+            # Получаем порт приложения
+            port = self._get_app_port(name, pid)
+
+            # Извлекаем версию
+            version = self._extract_version(artifact_path)
+
+            # Собираем метаданные
+            metadata = self._get_artifact_metadata(name, artifact_path, artifact_type, pid, port)
+
+            # Создаем объект приложения
+            app_info = ApplicationInfo(
+                name=name,
+                version=version,
+                status=status,
+                start_time=start_time,
+                metadata=metadata
+            )
+
+            logger.debug(f"Успешно обработано приложение: {name}")
+            return app_info
+
+        except Exception as e:
+            logger.error(f"Ошибка при обработке приложения {name}: {e}", exc_info=True)
+            return None
 
     def discover(self) -> List[ApplicationInfo]:
         """
         Основной метод обнаружения приложений.
-        
+
+        Использует ThreadPoolExecutor для параллельной обработки приложений.
+
         Returns:
             List[ApplicationInfo]: Список обнаруженных приложений
         """
-        apps = []
+        # Проверяем, включен ли плагин
+        if not self.enabled:
+            logger.info("Site App discovery отключен (SITE_DISCOVERY_ENABLED=false)")
+            return []
+
+        # Кэшируем порты один раз для всех приложений (ДО параллельного выполнения!)
+        self._cached_ports = self._get_listening_ports_netstat()
+        logger.debug(f"Кэшировано {len(self._cached_ports)} портов для discover()")
 
         # Проверяем существование директорий
         if not (self.app_root.exists() and self.htdoc_root.exists()):
@@ -535,62 +578,54 @@ class SVCAppDiscoverer(AbstractDiscoverer):
                 f"app_root={self.app_root}, htdoc_root={self.htdoc_root}"
             )
             return []
+
+        apps = []
+
         try:
             # Получаем список приложений
-            app_names = {
+            app_names = sorted([
                 app_dir.name
                 for app_dir in self.app_root.iterdir()
                 if app_dir.is_dir()
-            }
+            ])
 
             logger.debug(f"Обнаружено приложений в {self.app_root}: {len(app_names)}")
 
-            # Обрабатываем каждое приложение
-            # Наличие артефакта проверяется в _find_artifact() с учетом маппинга
-            for name in sorted(app_names):
+            # Параллельная обработка приложений
+            # Общий таймаут на discovery = subprocess_timeout * количество_приложений / workers * 2
+            discovery_timeout = max(
+                self.subprocess_timeout * 3,
+                self.subprocess_timeout * len(app_names) / self.discovery_workers * 2
+            )
+
+            with ThreadPoolExecutor(max_workers=self.discovery_workers) as executor:
+                # Запускаем обработку всех приложений параллельно
+                future_to_name = {
+                    executor.submit(self._process_single_app, name): name
+                    for name in app_names
+                }
+
+                # Собираем результаты по мере завершения с таймаутом
                 try:
-                    # Получаем статус через svcs
-                    status, start_time = self._get_app_status(name)
-
-                    # Получаем PID процесса
-                    pid = self._get_app_pid(name)
-
-                    # Получаем порт приложения
-                    port = self._get_app_port(name, pid)
-
-                    # Находим артефакт
-                    artifact_path, artifact_type = self._find_artifact(name)
-
-                    # Пропускаем приложения без артефакта
-                    if not artifact_path:
-                        logger.warning(f"{name}: артефакт не найден, приложение пропущено")
-                        continue
-
-                    # Извлекаем версию
-                    version = self._extract_version(artifact_path)
-
-                    # Собираем метаданные
-                    metadata = self._get_artifact_metadata(name, artifact_path, artifact_type, pid, port)
-                    
-                    # Создаем объект приложения
-                    app_info = ApplicationInfo(
-                        name=name,
-                        version=version,
-                        status=status,
-                        start_time=start_time,
-                        metadata=metadata
+                    for future in as_completed(future_to_name, timeout=discovery_timeout):
+                        name = future_to_name[future]
+                        try:
+                            result = future.result(timeout=self.subprocess_timeout)
+                            if result is not None:
+                                apps.append(result)
+                        except FuturesTimeoutError:
+                            logger.warning(f"Таймаут обработки приложения {name}")
+                        except Exception as e:
+                            logger.error(f"Ошибка при обработке {name}: {e}", exc_info=True)
+                except FuturesTimeoutError:
+                    logger.warning(
+                        f"Общий таймаут discovery ({discovery_timeout}s), "
+                        f"обработано {len(apps)} приложений"
                     )
 
-                    apps.append(app_info)
-                    logger.debug(f"Успешно обработано приложение: {name}")
-                    
-                except Exception as e:
-                    logger.error(f"Ошибка при обработке приложения {name}: {e}", exc_info=True)
-                    continue
-            
             logger.info(f"Обнаружение завершено. Найдено приложений: {len(apps)}")
-            
+
         except Exception as e:
             logger.error(f"Критическая ошибка в процессе обнаружения: {e}", exc_info=True)
-        
+
         return apps

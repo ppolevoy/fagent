@@ -513,7 +513,10 @@ class SVCAppDiscoverer(AbstractDiscoverer):
         
         # Путь к приложению
         metadata["app_path"] = str(self.app_root / app_name)
-        
+
+        # Источник данных
+        metadata["source"] = "svc"
+
         return metadata
 
     def discover(self) -> List[ApplicationInfo]:

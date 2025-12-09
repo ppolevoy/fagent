@@ -1,0 +1,361 @@
+#!/usr/bin/env python3
+"""
+Docker Discoverer - Plugin для обнаружения Docker контейнеров
+Версия: 2.0 (универсальная)
+
+Этот плагин работает с ОБЕИМИ версиями docker_client:
+- docker-py версия (быстрая) - использует _container_obj для оптимизации
+- subprocess версия (совместимая) - использует методы клиента
+
+Автоматически определяет какая версия docker_client используется.
+"""
+
+import logging
+import socket
+import os
+from typing import List
+from datetime import datetime
+
+from discovery import AbstractDiscoverer
+from models import ApplicationInfo
+from plugins.docker_client import DockerClient
+import config
+
+logger = logging.getLogger(__name__)
+
+
+class DockerDiscoverer(AbstractDiscoverer):
+    """Plugin для обнаружения Docker контейнеров"""
+
+    def __init__(self):
+        """Инициализация Docker discoverer"""
+        super().__init__()
+        self.enabled = getattr(config, 'DOCKER_DISCOVERY_ENABLED', True)
+        self.timeout = getattr(config, 'DOCKER_REQUEST_TIMEOUT', 10)
+
+        if self.enabled:
+            try:
+                self.client = DockerClient(timeout=self.timeout)
+                logger.info("Docker discoverer инициализирован")
+            except Exception as e:
+                logger.error(f"Ошибка инициализации Docker client: {e}")
+                self.enabled = False
+                self.client = None
+        else:
+            logger.info("Docker discoverer отключен в конфигурации")
+            self.client = None
+
+        # Инициализация Eureka client для обогащения данных (опционально)
+        self.eureka_client = None
+        self.eureka_enabled = getattr(config, 'EUREKA_DISCOVERY_ENABLED', False)
+
+        if self.eureka_enabled:
+            try:
+                from plugins.eureka_client import EurekaClient
+                eureka_host = getattr(config, 'EUREKA_HOST', 'fdse.f.ftc.ru')
+                eureka_port = getattr(config, 'EUREKA_PORT', 8761)
+                eureka_timeout = getattr(config, 'EUREKA_REQUEST_TIMEOUT', 10)
+
+                self.eureka_client = EurekaClient(
+                    host=eureka_host,
+                    port=eureka_port,
+                    timeout=eureka_timeout
+                )
+                logger.info("Docker discoverer: Eureka integration enabled")
+            except Exception as e:
+                logger.warning(f"Docker discoverer: Не удалось инициализировать Eureka client: {e}")
+                self.eureka_client = None
+
+    def _get_server_ip(self) -> str:
+        """Получение IP адреса сервера"""
+        try:
+            # Пытаемся получить IP через подключение к внешнему хосту
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("8.8.8.8", 80))
+                return s.getsockname()[0]
+        except Exception:
+            # Fallback на localhost
+            return "127.0.0.1"
+
+    def _map_docker_status(self, docker_status: str) -> str:
+        """
+        Преобразование статуса Docker в статус ApplicationInfo
+
+        Args:
+            docker_status: Статус из Docker (running, exited, paused, etc.)
+
+        Returns:
+            Статус для ApplicationInfo
+        """
+        status_mapping = {
+            "running": "online",
+            "exited": "offline",
+            "paused": "maintenance",
+            "restarting": "restarting",
+            "created": "offline",
+            "removing": "offline",
+            "dead": "offline"
+        }
+
+        # Docker статус может быть сложным, например "Up 2 hours"
+        docker_status_lower = docker_status.lower()
+
+        for docker_state, app_state in status_mapping.items():
+            if docker_state in docker_status_lower:
+                return app_state
+
+        # Если статус начинается с "Up", считаем online
+        if docker_status_lower.startswith("up"):
+            return "online"
+
+        # По умолчанию - unknown
+        return "unknown"
+
+    def _extract_status_from_state(self, state: str) -> str:
+        """
+        Извлечение базового статуса из строки состояния Docker
+
+        Args:
+            state: Строка состояния, например "Up 2 hours", "Exited (0) 3 hours ago", или базовый статус "running", "exited"
+
+        Returns:
+            Базовый статус (running, exited, etc.)
+        """
+        if not state:
+            return "unknown"
+
+        state_lower = state.lower()
+
+        # Сначала проверяем базовые статусы (которые приходят от container.status)
+        if state_lower == "running":
+            return "running"
+        elif state_lower == "exited":
+            return "exited"
+        elif state_lower == "paused":
+            return "paused"
+        elif state_lower == "restarting":
+            return "restarting"
+        elif state_lower == "created":
+            return "created"
+        elif state_lower == "removing":
+            return "removing"
+        elif state_lower == "dead":
+            return "dead"
+        # Потом проверяем человекочитаемые строки (для обратной совместимости с docker ps)
+        elif state_lower.startswith("up"):
+            return "running"
+        elif "exited" in state_lower:
+            return "exited"
+        elif "paused" in state_lower:
+            return "paused"
+        elif "restarting" in state_lower:
+            return "restarting"
+        elif "created" in state_lower:
+            return "created"
+        else:
+            return "unknown"
+
+    def _enrich_with_eureka(self, ip: str, port: int) -> dict:
+        """
+        Обогащение данных Docker контейнера информацией из Eureka.
+
+        Проверяет зарегистрировано ли приложение с данным IP:port в Eureka
+        и возвращает дополнительные метаданные.
+
+        Args:
+            ip: IP адрес контейнера
+            port: Порт контейнера
+
+        Returns:
+            Словарь с Eureka метаданными или пустой словарь
+        """
+        if not self.eureka_client or not port:
+            return {}
+
+        try:
+            eureka_app = self.eureka_client.find_app_by_ip_port(ip, port)
+
+            if eureka_app:
+                # Приложение найдено в Eureka
+                return {
+                    "eureka_registered": True,
+                    "eureka_instance_id": eureka_app.get("instance_id", ""),
+                    "eureka_app_name": eureka_app.get("app_name", ""),
+                    "eureka_status": eureka_app.get("status", "UNKNOWN"),
+                    "eureka_url": eureka_app.get("home_page_url", ""),
+                    "eureka_health_url": eureka_app.get("health_check_url", ""),
+                    "eureka_vip": eureka_app.get("vip_address", "")
+                }
+            else:
+                # Приложение не зарегистрировано в Eureka
+                return {
+                    "eureka_registered": False
+                }
+
+        except Exception as e:
+            logger.debug(f"Ошибка обогащения Eureka данными для {ip}:{port}: {e}")
+            return {}
+
+    def _format_start_time(self, start_time: str) -> str:
+        """
+        Форматирование времени запуска контейнера
+
+        Args:
+            start_time: Время в ISO формате от Docker
+
+        Returns:
+            Отформатированное время
+        """
+        if not start_time:
+            return "Unknown"
+
+        try:
+            # Docker возвращает время в формате: 2025-11-12T20:42:09.346234221Z
+            # Убираем наносекунды для простоты
+            if '.' in start_time:
+                # Оставляем только микросекунды (6 цифр)
+                base_time, fraction = start_time.split('.')
+                if 'Z' in fraction:
+                    fraction = fraction.replace('Z', '')
+                    # Берем первые 6 цифр для микросекунд
+                    fraction = fraction[:6].ljust(6, '0')
+                    start_time = f"{base_time}.{fraction}Z"
+
+            return start_time
+        except Exception as e:
+            logger.debug(f"Ошибка форматирования времени {start_time}: {e}")
+            return start_time
+
+    def discover(self) -> List[ApplicationInfo]:
+        """
+        Обнаружение Docker контейнеров
+
+        Returns:
+            Список ApplicationInfo для найденных контейнеров
+        """
+        if not self.enabled or not self.client:
+            logger.debug("Docker discoverer отключен или не инициализирован")
+            return []
+
+        applications = []
+
+        try:
+            # Получаем список контейнеров (только запущенные)
+            containers = self.client.get_containers(all_containers=False)
+
+            if not containers:
+                logger.info("Docker контейнеры не найдены")
+                return []
+
+            server_ip = self._get_server_ip()
+
+            for container in containers:
+                try:
+                    # Извлекаем базовую информацию
+                    container_id = container.get('ID', '')
+                    container_name = container.get('Names', '').lstrip('/')
+                    image_full = container.get('Image', '')
+                    status_string = container.get('Status', '')
+                    ports_string = container.get('Ports', '')
+
+                    if not container_id or not container_name:
+                        logger.warning(f"Пропущен контейнер без ID или имени: {container}")
+                        continue
+
+                    # Парсим образ и тег
+                    image, tag = self.client.parse_image_tag(image_full)
+
+                    # Извлекаем порт
+                    port = self.client.parse_port_mapping(ports_string)
+
+                    # Получаем PID
+                    pid = self.client.get_container_pid(container_id)
+
+                    # Получаем docker-compose директорию
+                    compose_dir = self.client.get_container_compose_dir(container_id)
+
+                    # Получаем время запуска
+                    start_time = self.client.get_container_start_time(container_id)
+                    if start_time:
+                        start_time = self._format_start_time(start_time)
+                    else:
+                        start_time = "Unknown"
+
+                    # Определяем статус
+                    base_status = self._extract_status_from_state(status_string)
+                    app_status = self._map_docker_status(base_status)
+
+                    # Базовые метаданные
+                    metadata = {
+                        "source": "docker",
+                        "container_id": container_id,
+                        "container_name": container_name,
+                        "image": image,
+                        "tag": tag,
+                        "image_full": image_full,
+                        "ip": server_ip,
+                        "port": port if port else None,
+                        "pid": pid if pid else None,
+                        "compose_project_dir": compose_dir,
+                        "docker_status": status_string,
+                        "docker_state": base_status
+                    }
+
+                    # Обогащение данными из Eureka (если включено)
+                    if self.eureka_client and port:
+                        eureka_data = self._enrich_with_eureka(server_ip, port)
+                        if eureka_data:
+                            metadata.update(eureka_data)
+                            if eureka_data.get("eureka_registered"):
+                                logger.debug(f"Docker контейнер {container_name} зарегистрирован в Eureka: {eureka_data.get('eureka_instance_id')}")
+
+                    # Создаем ApplicationInfo
+                    app_info = ApplicationInfo(
+                        name=container_name,
+                        version=tag,
+                        status=app_status,
+                        start_time=start_time,
+                        metadata=metadata
+                    )
+
+                    applications.append(app_info)
+                    logger.debug(f"Обнаружен Docker контейнер: {container_name} ({container_id[:12]})")
+
+                except Exception as e:
+                    logger.error(f"Ошибка обработки контейнера {container}: {e}")
+                    continue
+
+            logger.info(f"Docker discoverer обнаружил {len(applications)} контейнеров")
+
+        except Exception as e:
+            logger.error(f"Критическая ошибка в Docker discoverer: {e}")
+
+        return applications
+
+
+if __name__ == "__main__":
+    # Тестирование discoverer
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+
+    # Включаем Docker discovery для теста
+    config.DOCKER_DISCOVERY_ENABLED = True
+    config.DOCKER_REQUEST_TIMEOUT = 10
+
+    discoverer = DockerDiscoverer()
+    apps = discoverer.discover()
+
+    print(f"\n=== Найдено Docker приложений: {len(apps)} ===\n")
+
+    for app in apps:
+        print(f"Приложение: {app.name}")
+        print(f"  Версия: {app.version}")
+        print(f"  Статус: {app.status}")
+        print(f"  Время запуска: {app.start_time}")
+        print(f"  Метаданные:")
+        for key, value in app.metadata.items():
+            if value is not None:
+                print(f"    {key}: {value}")
+        print()

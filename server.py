@@ -51,7 +51,64 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
 
     def _get_url_path_parts(self) -> List[str]:
         """Разбирает URL путь на части."""
-        return [part for part in urllib.parse.urlparse(self.path).path.split('/') if part]             
+        return [part for part in urllib.parse.urlparse(self.path).path.split('/') if part]
+
+    def _format_docker_apps(self, apps: List[ApplicationInfo]) -> List[Dict[str, Any]]:
+        """Форматирование Docker приложений для JSON ответа."""
+        result = []
+        for app in apps:
+            docker_app = {
+                "container_id": app.metadata.get("container_id", ""),
+                "container_name": app.metadata.get("container_name", app.name),
+                "image": app.metadata.get("image", ""),
+                "tag": app.metadata.get("tag", ""),
+                "ip": app.metadata.get("ip", ""),
+                "port": app.metadata.get("port"),
+                "compose_project_dir": app.metadata.get("compose_project_dir"),
+                "status": app.status,
+                "pid": app.metadata.get("pid"),
+                "start_time": app.start_time
+            }
+
+            # Добавляем Eureka метаданные если есть
+            if app.metadata.get("eureka_registered"):
+                docker_app["eureka_registered"] = True
+                docker_app["eureka_instance_id"] = app.metadata.get("eureka_instance_id")
+                docker_app["eureka_app_name"] = app.metadata.get("eureka_app_name")
+                docker_app["eureka_status"] = app.metadata.get("eureka_status")
+                docker_app["eureka_url"] = app.metadata.get("eureka_url")
+                docker_app["eureka_health_url"] = app.metadata.get("eureka_health_url")
+                docker_app["eureka_vip"] = app.metadata.get("eureka_vip")
+            else:
+                docker_app["eureka_registered"] = False
+
+            # Убираем None значения
+            result.append({k: v for k, v in docker_app.items() if v is not None})
+        return result
+
+    def _format_svc_apps(self, apps: List[ApplicationInfo]) -> List[Dict[str, Any]]:
+        """Форматирование SVC приложений для JSON ответа."""
+        result = []
+        server_ip = get_ip_address()
+        for app in apps:
+            svc_app = {
+                "name": app.name,
+                "version": app.version,
+                "status": app.status,
+                "start_time": app.start_time,
+                "pid": app.metadata.get("pid"),
+                "port": app.metadata.get("port"),
+                "ip": server_ip,
+                "log_path": app.metadata.get("log_path"),
+                "distr_path": app.metadata.get("distr_path"),
+                "artifact_size_bytes": app.metadata.get("artifact_size_bytes"),
+                "artifact_size_mb": app.metadata.get("artifact_size_mb"),
+                "artifact_type": app.metadata.get("artifact_type"),
+                "app_path": app.metadata.get("app_path")
+            }
+            # Убираем None значения
+            result.append({k: v for k, v in svc_app.items() if v is not None})
+        return result
 
     def do_GET(self):
         parts = self._get_url_path_parts()
@@ -61,39 +118,118 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"status": "ok"}).encode("utf-8"))
             return
 
-        #elif self.path == "/api/v1/apps":
-        elif self.path == "/app":
+        # Обработка запроса списка приложений
+        # Поддерживаем два варианта: /app (старый) и /api/v1/apps (новый, множественное число)
+        elif self.path == "/app" or self.path == "/api/v1/apps":
             apps = self.discovery_manager.run_discovery()
 
             # Формируем метку времени в формате YYYYMMDD_HHMMSS с добавлением 4 часов
             last_update = (datetime.now() + timedelta(hours=7)).strftime("%Y%m%d_%H%M%S")
 
+            # Группируем приложения по источнику
+            # ВАЖНО: Eureka приложения НЕ включаются в основной список,
+            # они используются только для обогащения Docker/SVC приложений
+            docker_apps = []
+            svc_apps = []
+
+            for app in apps:
+                source = app.metadata.get("source", "unknown")
+                if source == "docker":
+                    docker_apps.append(app)
+                elif source == "svc":
+                    svc_apps.append(app)
+                elif source == "eureka":
+                    # Пропускаем Eureka приложения - они только для обогащения
+                    continue
+                # Если source не указан (старые плагины), считаем что это SVC
+                elif source == "unknown":
+                    svc_apps.append(app)
+
+            # Формируем ответ с разделением по источникам
             response_data = {
                 "server": {
                     "name": get_hostname(),
-                    "ip": get_ip_address(),
-                    "site-app": {
-                        "applications": [app.to_dict() for app in apps],
-                        "count": str(len(apps)),
-                        "last_update": last_update
-                    }
+                    "ip": get_ip_address()
                 }
             }
+
+            # Добавляем docker-app секцию только если есть Docker приложения
+            if docker_apps:
+                response_data["server"]["docker-app"] = {
+                    "applications": self._format_docker_apps(docker_apps),
+                    "count": len(docker_apps),
+                    "last_update": last_update
+                }
+
+            # Всегда добавляем site-app секцию (SVC приложения)
+            response_data["server"]["site-app"] = {
+                "applications": self._format_svc_apps(svc_apps),
+                "count": len(svc_apps),
+                "last_update": last_update
+            }
+
             self._set_headers()
             self.wfile.write(json.dumps(response_data, indent=4).encode("utf-8"))
             return
 
+        # Обработка запроса конкретного приложения по имени
+        # GET /api/v1/apps/{app_name}
+        elif len(parts) == 4 and parts[0:3] == ['api', 'v1', 'apps']:
+            app_name = parts[3]
+            apps = self.discovery_manager.run_discovery()
+
+            # Ищем приложение по имени
+            found_app = None
+            for app in apps:
+                source = app.metadata.get("source", "unknown")
+                # Для Docker сравниваем с container_name
+                if source == "docker":
+                    if app.metadata.get("container_name") == app_name:
+                        found_app = app
+                        break
+                # Для SVC и других сравниваем с name
+                else:
+                    if app.name == app_name:
+                        found_app = app
+                        break
+
+            if found_app is None:
+                self._set_headers(404)
+                self.wfile.write(json.dumps({
+                    "success": False,
+                    "error": f"Application '{app_name}' not found"
+                }, indent=2).encode("utf-8"))
+                return
+
+            # Форматируем ответ в зависимости от типа приложения
+            source = found_app.metadata.get("source", "unknown")
+            if source == "docker":
+                formatted_data = self._format_docker_apps([found_app])[0]
+            else:
+                formatted_data = self._format_svc_apps([found_app])[0]
+
+            response = {
+                "success": True,
+                "source": source if source != "unknown" else "svc",
+                "data": formatted_data
+            }
+
+            self._set_headers()
+            self.wfile.write(json.dumps(response, indent=2).encode("utf-8"))
+            return
+
         # Обработка API GET запросов для контроллеров
         # URL: /api/v1/{controller_name}/...
-        if len(parts) >= 3 and parts[0:2] == ['api', 'v1']:
+        elif len(parts) >= 3 and parts[0:2] == ['api', 'v1']:
             controller_name = parts[2]
 
             # Получаем контроллер
             controller = self.control_manager.get_controller(controller_name)
 
             if not controller:
-                # Контроллер не найден - пропускаем дальше (будет 404)
-                pass
+                # Контроллер не найден - возвращаем детальную ошибку
+                self._send_error_response(404, f"Controller '{controller_name}' not found")
+                return
             else:
                 # Проверяем, поддерживает ли контроллер GET запросы
                 if hasattr(controller, 'handle_get'):

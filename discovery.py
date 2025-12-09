@@ -33,16 +33,26 @@ class DiscoveryManager:
         logger.info(f"Loading plugins from: {Config.PLUGINS_DIR}")
         for file_path in Config.PLUGINS_DIR.glob("*_discoverer.py"):
             module_name = file_path.stem
-            spec = importlib.util.spec_from_file_location(module_name, file_path)
-            if spec and spec.loader:
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-                
-                # Ищем классы, наследующиеся от AbstractDiscoverer
-                for name, obj in inspect.getmembers(module):
-                    if inspect.isclass(obj) and issubclass(obj, AbstractDiscoverer) and obj is not AbstractDiscoverer:
-                        logger.info(f"  - Loaded discoverer: {name}")
-                        self.discoverers.append(obj())
+            try:
+                spec = importlib.util.spec_from_file_location(module_name, file_path)
+                if spec and spec.loader:
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+
+                    # Ищем классы, наследующиеся от AbstractDiscoverer
+                    for name, obj in inspect.getmembers(module):
+                        if inspect.isclass(obj) and issubclass(obj, AbstractDiscoverer) and obj is not AbstractDiscoverer:
+                            try:
+                                # Пытаемся создать экземпляр плагина
+                                instance = obj()
+                                logger.info(f"  - Loaded discoverer: {name}")
+                                self.discoverers.append(instance)
+                            except Exception as e:
+                                logger.warning(f"  - Failed to initialize discoverer {name}: {e}")
+            except ImportError as e:
+                logger.warning(f"  - Failed to import plugin {module_name}: {e}")
+            except Exception as e:
+                logger.error(f"  - Unexpected error loading plugin {module_name}: {e}")
     
     def run_discovery(self) -> List[ApplicationInfo]:
         """Запускает обнаружение на всех загруженных плагинах."""

@@ -89,6 +89,7 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
     def _format_svc_apps(self, apps: List[ApplicationInfo]) -> List[Dict[str, Any]]:
         """Форматирование SVC приложений для JSON ответа."""
         result = []
+        server_ip = get_ip_address()
         for app in apps:
             svc_app = {
                 "name": app.name,
@@ -97,6 +98,7 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
                 "start_time": app.start_time,
                 "pid": app.metadata.get("pid"),
                 "port": app.metadata.get("port"),
+                "ip": server_ip,
                 "log_path": app.metadata.get("log_path"),
                 "distr_path": app.metadata.get("distr_path"),
                 "artifact_size_bytes": app.metadata.get("artifact_size_bytes"),

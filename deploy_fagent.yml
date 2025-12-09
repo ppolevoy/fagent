@@ -1,0 +1,140 @@
+---
+# Ansible Playbook для развертывания FAgent на удаленные серверы
+# Версия Ansible: 2.8.1+
+#
+# Использование:
+#   ansible-playbook deploy_fagent.yml -e "target_host=192.168.8.88"
+#   ansible-playbook deploy_fagent.yml -e "target_host=192.168.8.88 ansible_user=root ansible_ssh_pass=qwe123"
+#   ansible-playbook deploy_fagent.yml -e "target_host=192.168.8.88 remote_path=/opt/FAgent"
+#   ansible-playbook deploy_fagent.yml -e "target_host=192.168.8.88 restart_service=true"
+#
+# Переменные:
+#   target_host        - IP или hostname целевого сервера (обязательный)
+#   remote_path        - путь на удаленном сервере (по умолчанию: /site/app/FAgent/project)
+#   fagent_owner       - владелец файлов (по умолчанию: root)
+#   fagent_group       - группа файлов (по умолчанию: root)
+#   restart_service    - перезапустить службу после копирования (по умолчанию: false)
+#   ansible_user       - пользователь SSH (по умолчанию: root)
+#   ansible_ssh_pass   - пароль SSH (опционально)
+
+- name: Deploy FAgent to remote server
+  hosts: "{{ target_host }}"
+  gather_facts: false
+
+  vars:
+    remote_path: "/site/app/FAgent/project"
+    fagent_owner: "root"
+    fagent_group: "root"
+    restart_service: false
+    ansible_user: "root"
+
+  tasks:
+    - name: Ensure remote directory exists
+      file:
+        path: "{{ remote_path }}"
+        state: directory
+        owner: "{{ fagent_owner }}"
+        group: "{{ fagent_group }}"
+        mode: '0755'
+
+    - name: Ensure subdirectories exist
+      file:
+        path: "{{ remote_path }}/{{ item }}"
+        state: directory
+        owner: "{{ fagent_owner }}"
+        group: "{{ fagent_group }}"
+        mode: '0755'
+      loop:
+        - controllers
+        - plugins
+        - integrations
+        - scripts
+        - tests
+        - docs
+
+    - name: Copy Python files
+      copy:
+        src: "{{ playbook_dir }}/{{ item }}"
+        dest: "{{ remote_path }}/{{ item }}"
+        owner: "{{ fagent_owner }}"
+        group: "{{ fagent_group }}"
+        mode: '0644'
+      loop:
+        - main.py
+        - server.py
+        - config.py
+        - models.py
+        - discovery.py
+        - control.py
+        - control_manager.py
+      ignore_errors: true
+
+    - name: Copy other files
+      copy:
+        src: "{{ playbook_dir }}/{{ item }}"
+        dest: "{{ remote_path }}/{{ item }}"
+        owner: "{{ fagent_owner }}"
+        group: "{{ fagent_group }}"
+        mode: '0644'
+      loop:
+        - requirements.txt
+        - README.md
+        - CLAUDE.md
+        - app_name_mapping.json.example
+      ignore_errors: true
+
+    - name: Copy fagent.sh script
+      copy:
+        src: "{{ playbook_dir }}/fagent.sh"
+        dest: "{{ remote_path }}/fagent.sh"
+        owner: "{{ fagent_owner }}"
+        group: "{{ fagent_group }}"
+        mode: '0755'
+
+    - name: Set executable permission on main.py
+      file:
+        path: "{{ remote_path }}/main.py"
+        mode: '0755'
+
+    - name: Copy controllers directory
+      copy:
+        src: "{{ playbook_dir }}/controllers/"
+        dest: "{{ remote_path }}/controllers/"
+        owner: "{{ fagent_owner }}"
+        group: "{{ fagent_group }}"
+        mode: '0644'
+        directory_mode: '0755'
+
+    - name: Copy plugins directory
+      copy:
+        src: "{{ playbook_dir }}/plugins/"
+        dest: "{{ remote_path }}/plugins/"
+        owner: "{{ fagent_owner }}"
+        group: "{{ fagent_group }}"
+        mode: '0644'
+        directory_mode: '0755'
+
+    - name: Copy integrations directory
+      copy:
+        src: "{{ playbook_dir }}/integrations/"
+        dest: "{{ remote_path }}/integrations/"
+        owner: "{{ fagent_owner }}"
+        group: "{{ fagent_group }}"
+        mode: '0644'
+        directory_mode: '0755'
+      ignore_errors: true
+
+    - name: Copy scripts directory
+      copy:
+        src: "{{ playbook_dir }}/scripts/"
+        dest: "{{ remote_path }}/scripts/"
+        owner: "{{ fagent_owner }}"
+        group: "{{ fagent_group }}"
+        mode: '0755'
+        directory_mode: '0755'
+      ignore_errors: true
+
+    - name: Restart FAgent service (optional)
+      shell: "{{ remote_path }}/fagent.sh restart"
+      when: restart_service | bool
+      ignore_errors: true

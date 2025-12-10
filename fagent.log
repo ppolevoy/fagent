@@ -8865,3 +8865,11 @@
 2025-12-10 21:31:33,204 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
 2025-12-10 21:31:33,206 - plugins.site_app.discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
 2025-12-10 21:31:33,207 - discovery - INFO - Discovery completed in 16ms: OK=[EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms), SiteAppDiscoverer(0 apps, 16ms)] FAILED=[none]
+2025-12-10 21:32:03,770 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 21:32:03,770 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 21:32:03,774 - plugins.site_app.discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 21:32:03,774 - discovery - INFO - Discovery completed in 18ms: OK=[EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 13ms), SiteAppDiscoverer(0 apps, 17ms)] FAILED=[none]
+2025-12-10 21:32:32,111 - plugins.docker_client - INFO - Получено 5 контейнеров
+2025-12-10 21:32:32,111 - docker_discoverer - INFO - Docker discoverer обнаружил 5 контейнеров
+2025-12-10 21:32:32,113 - plugins.site_app.discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2025-12-10 21:32:32,113 - discovery - INFO - Discovery completed in 17ms: OK=[EurekaDiscoverer(0 apps, 0ms), DockerDiscoverer(5 apps, 15ms), SiteAppDiscoverer(0 apps, 17ms)] FAILED=[none]

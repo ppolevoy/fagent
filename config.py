@@ -8,6 +8,9 @@ class Config:
     SERVER_HOST = os.getenv("AGENT_HOST", "0.0.0.0")
     SERVER_PORT = int(os.getenv("AGENT_PORT", 11011))
 
+    # Часовой пояс для отображения времени в API (смещение в часах от UTC)
+    TIMEZONE_OFFSET_HOURS = int(os.getenv("TIMEZONE_OFFSET_HOURS", "7"))
+
     # Настройки обнаружения
     DISCOVERY_INTERVAL_SECONDS = int(os.getenv("DISCOVERY_INTERVAL", 60))
     PLUGINS_DIR = Path(__file__).parent / "plugins"
@@ -82,3 +85,10 @@ class Config:
     DISCOVERY_PLUGIN_TIMEOUT_SECONDS = float(os.getenv("DISCOVERY_PLUGIN_TIMEOUT", "15.0"))
     DISCOVERY_TOTAL_TIMEOUT_SECONDS = float(os.getenv("DISCOVERY_TOTAL_TIMEOUT", "30.0"))
     DISCOVERY_PARALLEL_WORKERS = int(os.getenv("DISCOVERY_PARALLEL_WORKERS", "3"))
+
+    # Discovery кэширование (Background Refresh + Stale-While-Revalidate)
+    DISCOVERY_CACHE_ENABLED = os.getenv("DISCOVERY_CACHE_ENABLED", "true").lower() == "true"
+    DISCOVERY_REFRESH_INTERVAL = int(os.getenv("DISCOVERY_REFRESH_INTERVAL", "30"))  # Интервал обновления (сек)
+    DISCOVERY_STALE_THRESHOLD = int(os.getenv("DISCOVERY_STALE_THRESHOLD", "60"))    # После этого — warning
+    DISCOVERY_MAX_STALE = int(os.getenv("DISCOVERY_MAX_STALE", "300"))                # После этого — error
+    DISCOVERY_JITTER = float(os.getenv("DISCOVERY_JITTER", "0.1"))                    # ±10% к интервалу

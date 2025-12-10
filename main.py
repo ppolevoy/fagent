@@ -2,11 +2,11 @@
 import sys
 import signal
 import logging
-import time
 import threading
 from typing import Optional
 
 from discovery import DiscoveryManager
+from discovery_scheduler import DiscoveryScheduler
 from server import run_server
 from config import Config
 
@@ -20,18 +20,6 @@ def setup_logging() -> None:
     # Устанавливаем уровень для конкретных логгеров
     logger = logging.getLogger(__name__)
     logger.setLevel(getattr(logging, Config.LOG_LEVEL))
-
-def update_data_periodically(discovery_manager: DiscoveryManager):
-    """Фоновая задача для периодического обновления данных."""
-    while True:
-        logging.info("Starting application discovery cycle...")
-        try:
-            apps = discovery_manager.run_discovery()
-            logging.info(f"Discovery cycle completed. Found {len(apps)} applications.")
-        except Exception as e:
-            logging.error(f"Error during discovery cycle: {e}")
-        
-        time.sleep(Config.DISCOVERY_INTERVAL_SECONDS)
 
 def initialize_discovery_manager() -> Optional[DiscoveryManager]:
     """
@@ -55,12 +43,7 @@ def initialize_discovery_manager() -> Optional[DiscoveryManager]:
         logger.info(f"Plugins loaded: {len(manager.discoverers)}")
         for discoverer in manager.discoverers:
             logger.info(f"  - {type(discoverer).__name__}")
-        
-        # Пробный запуск обнаружения
-        logger.info("Выполнение пробного обнаружения...")
-        apps = manager.run_discovery()
-        logger.info(f"Trial discovery completed. Apps found: {len(apps)}")
-        
+
         return manager
         
     except Exception as e:
@@ -75,6 +58,15 @@ def setup_signal_handlers() -> None:
         """Обработчик сигнала SIGTERM"""
         logger.info(f"Received SIGTERM, beginning graceful shutdown...")
 
+        # Останавливаем DiscoveryScheduler
+        if discovery_scheduler_instance:
+            logger.info("Stopping DiscoveryScheduler...")
+            try:
+                discovery_scheduler_instance.stop()
+                logger.info("DiscoveryScheduler stopped")
+            except Exception as e:
+                logger.error(f"Error stopping DiscoveryScheduler: {e}")
+
         # Останавливаем HTTP сервер из отдельного потока
         if httpd_instance:
             logger.info("Stopping HTTP server...")
@@ -83,7 +75,7 @@ def setup_signal_handlers() -> None:
                 shutdown_thread = threading.Thread(target=httpd_instance.shutdown)
                 shutdown_thread.start()
                 shutdown_thread.join(timeout=5)
-                logger.info("HTTP server stopped ✓")
+                logger.info("HTTP server stopped")
             except Exception as e:
                 logger.error(f"Error stopping the server: {e}")
 
@@ -99,29 +91,29 @@ def main():
     """Главная функция для запуска агента."""
 
     global httpd_instance
+    global discovery_scheduler_instance
     httpd_instance = None
+    discovery_scheduler_instance = None
 
     setup_logging()
-    logger = logging.getLogger(__name__)    
-    
+    logger = logging.getLogger(__name__)
+
     try:
 
         # Настройка обработчиков сигналов
         setup_signal_handlers()
 
         logging.info("Starting Application Discovery Agent...")
-    
+
         # 1. Инициализация менеджера обнаружения (он сам загрузит плагины)
         discovery_manager = initialize_discovery_manager()
         if not discovery_manager:
             logger.error("Failed to initialize discovery manager")
             return 1
 
-        # 2. Запуск фонового потока для обновления данных
-        # (В этой версии данные запрашиваются "на лету" в each API request,
-        # но поток полезен для периодических проверок или кеширования в будущем)
-        # update_thread = threading.Thread(target=update_data_periodically, args=(discovery_manager,), daemon=True)
-        # update_thread.start()
+        # 2. Инициализация и запуск DiscoveryScheduler (фоновое сканирование с кэшированием)
+        discovery_scheduler_instance = DiscoveryScheduler(discovery_manager)
+        discovery_scheduler_instance.start()
 
         # Запуск HTTP сервера
         logger.info("=" * 60)
@@ -129,7 +121,7 @@ def main():
         logger.info("=" * 60)
 
         try:
-            httpd_instance = run_server(discovery_manager)
+            httpd_instance = run_server(discovery_manager, discovery_scheduler=discovery_scheduler_instance)
             httpd_instance.serve_forever()
 
         except OSError as e:
@@ -143,8 +135,11 @@ def main():
                 return 1
     except KeyboardInterrupt:
         logger.info("KeyboardInterrupt received, shutting down...")
+        # Останавливаем DiscoveryScheduler при Ctrl+C
+        if discovery_scheduler_instance:
+            discovery_scheduler_instance.stop()
         return 0
-    
+
     except Exception as e:
         logging.error(f"Server failed: {e}")
         return 1

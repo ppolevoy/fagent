@@ -4,7 +4,7 @@ import socket
 import urllib.parse
 import logging
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta
 
 from models import ApplicationInfo
@@ -36,6 +36,7 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
 
     # Внедряем зависимость через атрибут класса (простой способ для примера)
     discovery_manager: DiscoveryManager = None
+    discovery_scheduler = None  # DiscoveryScheduler для кэширования
     control_manager: ControlManager = None
 
     def _set_headers(self, status_code=200):
@@ -52,6 +53,33 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
     def _get_url_path_parts(self) -> List[str]:
         """Разбирает URL путь на части."""
         return [part for part in urllib.parse.urlparse(self.path).path.split('/') if part]
+
+    def _is_apps_list_request(self) -> bool:
+        """Проверка что запрос — список приложений (/app или /api/v1/apps)."""
+        parsed = urllib.parse.urlparse(self.path)
+        return parsed.path in ("/app", "/api/v1/apps")
+
+    def _get_apps_and_cache_info(self, force_refresh: bool = False) -> Tuple[List[ApplicationInfo], Optional[Dict[str, Any]]]:
+        """
+        Получить список приложений и информацию о кэше.
+
+        Args:
+            force_refresh: Принудительное обновление кэша
+
+        Returns:
+            Tuple: (apps: List[ApplicationInfo], cache_info: dict or None)
+        """
+        # Если есть discovery_scheduler — используем кэш
+        if self.discovery_scheduler:
+            if force_refresh:
+                self.discovery_scheduler.force_refresh()
+            apps = self.discovery_scheduler.get_apps()
+            cache_info = self.discovery_scheduler.get_cache_info()
+            return apps, cache_info
+
+        # Fallback: прямой вызов discovery
+        apps = self.discovery_manager.run_discovery()
+        return apps, None
 
     def _format_docker_apps(self, apps: List[ApplicationInfo]) -> List[Dict[str, Any]]:
         """Форматирование Docker приложений для JSON ответа."""
@@ -119,12 +147,18 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
             return
 
         # Обработка запроса списка приложений
-        # Поддерживаем два варианта: /app (старый) и /api/v1/apps (новый, множественное число)
-        elif self.path == "/app" or self.path == "/api/v1/apps":
-            apps = self.discovery_manager.run_discovery()
+        # Поддерживаем два варианта: /app (старый) и /api/v1/apps (новый)
+        elif self._is_apps_list_request():
+            # Парсим query параметры для проверки ?refresh=true
+            parsed_url = urllib.parse.urlparse(self.path)
+            query_params = dict(urllib.parse.parse_qsl(parsed_url.query))
+            force_refresh = query_params.get('refresh', '').lower() == 'true'
 
-            # Формируем метку времени в формате YYYYMMDD_HHMMSS с добавлением 4 часов
-            last_update = (datetime.now() + timedelta(hours=7)).strftime("%Y%m%d_%H%M%S")
+            # Получаем приложения (из кэша или напрямую)
+            apps, cache_info = self._get_apps_and_cache_info(force_refresh=force_refresh)
+
+            # Формируем метку времени в формате YYYYMMDD_HHMMSS с учётом часового пояса
+            last_update = (datetime.now() + timedelta(hours=Config.TIMEZONE_OFFSET_HOURS)).strftime("%Y%m%d_%H%M%S")
 
             # Группируем приложения по источнику
             # ВАЖНО: Eureka приложения НЕ включаются в основной список,
@@ -132,11 +166,19 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
             docker_apps = []
             svc_apps = []
 
+            # Логируем для диагностики
+            if apps:
+                sources = {}
+                for app in apps:
+                    src = app.metadata.get("source", "unknown")
+                    sources[src] = sources.get(src, 0) + 1
+                logger.info(f"Discovery returned {len(apps)} apps, sources: {sources}")
+
             for app in apps:
                 source = app.metadata.get("source", "unknown")
                 if source == "docker":
                     docker_apps.append(app)
-                elif source == "svc":
+                elif source in ("svc", "site-app"):
                     svc_apps.append(app)
                 elif source == "eureka":
                     # Пропускаем Eureka приложения - они только для обогащения
@@ -168,6 +210,12 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
                 "last_update": last_update
             }
 
+            # Добавляем информацию о кэше (если scheduler активен)
+            if cache_info:
+                response_data["meta"] = {
+                    "cache": cache_info
+                }
+
             self._set_headers()
             self.wfile.write(json.dumps(response_data, indent=4).encode("utf-8"))
             return
@@ -176,7 +224,7 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
         # GET /api/v1/apps/{app_name}
         elif len(parts) == 4 and parts[0:3] == ['api', 'v1', 'apps']:
             app_name = parts[3]
-            apps = self.discovery_manager.run_discovery()
+            apps, _ = self._get_apps_and_cache_info()
 
             # Ищем приложение по имени
             found_app = None
@@ -210,7 +258,7 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
 
             response = {
                 "success": True,
-                "source": source if source != "unknown" else "svc",
+                "source": source if source not in ("unknown", "site-app") else "svc",
                 "data": formatted_data
             }
 
@@ -325,18 +373,20 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
         """Отключаем стандартный логгинг HTTP-сервера, чтобы управлять им централизованно."""
         pass
 
-def run_server(discovery_manager: DiscoveryManager, control_manager: ControlManager = None):
+def run_server(discovery_manager: DiscoveryManager, control_manager: ControlManager = None, discovery_scheduler=None):
     """
     Создает HTTP-сервер и возвращает его экземпляр.
 
     Args:
         discovery_manager: Менеджер обнаружения приложений
         control_manager: Менеджер контроллеров (опционально)
+        discovery_scheduler: Планировщик кэширования discovery (опционально)
     """
     server_address = (Config.SERVER_HOST, Config.SERVER_PORT)
 
     # Внедряем менеджеры в обработчик
     AgentRequestHandler.discovery_manager = discovery_manager
+    AgentRequestHandler.discovery_scheduler = discovery_scheduler
 
     # Инициализируем control_manager если не передан
     if control_manager is None:

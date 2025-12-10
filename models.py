@@ -2,7 +2,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, Any
 
-@dataclass
+@dataclass(frozen=True)
 class ApplicationInfo:
     """Универсальная модель для информации о приложении."""
     name: str

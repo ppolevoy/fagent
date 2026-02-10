@@ -172,7 +172,7 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
                 for app in apps:
                     src = app.metadata.get("source", "unknown")
                     sources[src] = sources.get(src, 0) + 1
-                logger.info(f"Discovery returned {len(apps)} apps, sources: {sources}")
+                logger.debug(f"Discovery returned {len(apps)} apps, sources: {sources}")
 
             for app in apps:
                 source = app.metadata.get("source", "unknown")

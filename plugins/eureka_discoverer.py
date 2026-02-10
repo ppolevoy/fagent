@@ -110,7 +110,7 @@ class EurekaDiscoverer(AbstractDiscoverer):
             eureka_apps = self.client.get_applications()
 
             if not eureka_apps:
-                logger.info("Приложения в Eureka не найдены")
+                logger.debug("Приложения в Eureka не найдены")
                 return []
 
             for eureka_app in eureka_apps:
@@ -158,7 +158,7 @@ class EurekaDiscoverer(AbstractDiscoverer):
                     logger.error(f"Ошибка обработки приложения из Eureka {eureka_app}: {e}")
                     continue
 
-            logger.info(f"Eureka discoverer обнаружил {len(applications)} приложений")
+            logger.debug(f"Eureka discoverer обнаружил {len(applications)} приложений")
 
         except Exception as e:
             logger.error(f"Критическая ошибка в Eureka discoverer: {e}")

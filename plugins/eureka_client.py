@@ -77,7 +77,7 @@ class EurekaClient:
                         if instance_info:
                             applications.append(instance_info)
 
-            logger.info(f"Получено {len(applications)} приложений из Eureka")
+            logger.debug(f"Получено {len(applications)} приложений из Eureka")
             return applications
 
         except requests.exceptions.Timeout:

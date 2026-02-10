@@ -51,7 +51,7 @@ class HAProxyClient:
         # Определяем тип socket и парсим адрес
         self.socket_type, self.address = self._parse_socket_path(socket_path)
 
-        logger.info(f"HAProxyClient инициализирован: type={self.socket_type}, "
+        logger.debug(f"HAProxyClient инициализирован: type={self.socket_type}, "
                    f"address={self.address}, timeout={timeout}s")
 
         # Валидация в зависимости от типа
@@ -73,7 +73,7 @@ class HAProxyClient:
             HAProxyConnectionError: Если формат невалидный
         """
         socket_path = socket_path.strip()
-        logger.info(f"Парсинг socket_path: {socket_path}")
+        logger.debug(f"Парсинг socket_path: {socket_path}")
         # TCP IPv4: ipv4@192.168.1.15:7777
         if socket_path.startswith('ipv4@'):
             address_str = socket_path[5:]  # Убираем 'ipv4@'
@@ -248,7 +248,7 @@ class HAProxyClient:
         Returns:
             Dict[str, str]: Информация о HAProxy
         """
-        logger.info("Получение информации о HAProxy")
+        logger.debug("Получение информации о HAProxy")
 
         try:
             response = self._send_command("show info")
@@ -273,7 +273,7 @@ class HAProxyClient:
         Returns:
             List[str]: Список имен бэкендов
         """
-        logger.info("Получение списка бэкендов")
+        logger.debug("Получение списка бэкендов")
 
         try:
             response = self._send_command("show stat")
@@ -291,7 +291,7 @@ class HAProxyClient:
                     backends.add(pxname)
 
             result = sorted(list(backends))
-            logger.info(f"Найдено бэкендов: {len(result)}")
+            logger.debug(f"Найдено бэкендов: {len(result)}")
             logger.debug(f"Бэкенды: {result}")
 
             return result
@@ -310,7 +310,7 @@ class HAProxyClient:
         Returns:
             List[Dict[str, str]]: Список серверов с их параметрами
         """
-        logger.info(f"Получение серверов для бэкенда: {backend_name}")
+        logger.debug(f"Получение серверов для бэкенда: {backend_name}")
 
         try:
             response = self._send_command("show stat")
@@ -334,7 +334,7 @@ class HAProxyClient:
                     }
                     servers.append(server_info)
 
-            logger.info(f"Найдено серверов в бэкенде '{backend_name}': {len(servers)}")
+            logger.debug(f"Найдено серверов в бэкенде '{backend_name}': {len(servers)}")
             return servers
 
         except Exception as e:
@@ -364,7 +364,7 @@ class HAProxyClient:
                 f"Allowed values: {', '.join(self.VALID_STATES)}"
             )
 
-        logger.info(f"Установка состояния сервера: {backend_name}/{server_name} -> {state}")
+        logger.debug(f"Установка состояния сервера: {backend_name}/{server_name} -> {state}")
 
         try:
             command = f"set server {backend_name}/{server_name} state {state}"
@@ -377,7 +377,7 @@ class HAProxyClient:
                     logger.error(f"HAProxy вернул ошибку: {response}")
                     raise HAProxyCommandError(f"HAProxy error: {response}")
 
-            logger.info(f"Состояние сервера {backend_name}/{server_name} успешно изменено на '{state}'")
+            logger.debug(f"Состояние сервера {backend_name}/{server_name} успешно изменено на '{state}'")
             return True
 
         except HAProxyCommandError:
@@ -398,7 +398,7 @@ class HAProxyClient:
         Returns:
             Optional[Dict[str, str]]: Информация о сервере или None если не найден
         """
-        logger.info(f"Получение состояния сервера: {backend_name}/{server_name}")
+        logger.debug(f"Получение состояния сервера: {backend_name}/{server_name}")
 
         try:
             servers = self.get_backend_servers(backend_name)

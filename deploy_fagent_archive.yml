@@ -1,0 +1,109 @@
+---
+# Ansible Playbook для развертывания FAgent из архива
+# Версия Ansible: 2.7+
+#
+# Использование:
+#   ansible-playbook deploy_fagent_archive.yml -e "target_host=192.168.8.88 archive_path=/tmp/fagent.tar.gz"
+#   ansible-playbook deploy_fagent_archive.yml -e "target_host=192.168.8.88 archive_path=fagent-1.0.tar.gz ansible_user=myuser"
+#   ansible-playbook deploy_fagent_archive.yml -e "target_host=192.168.8.88 archive_path=fagent.tar.gz skip_confirmation=true"
+#
+# Переменные:
+#   target_host        - IP или hostname целевого сервера (обязательный)
+#   archive_path       - путь к архиву агента (обязательный)
+#   ansible_user       - пользователь SSH (по умолчанию: root)
+#   skip_confirmation  - пропустить подтверждение удаления (по умолчанию: false)
+
+- name: Deploy FAgent from archive
+  hosts: "{{ target_host }}"
+  gather_facts: false
+
+  vars:
+    remote_base_path: "~/scripts"
+    remote_agent_path: "~/scripts/FAgent"
+    ansible_user: "root"
+    skip_confirmation: false
+
+  tasks:
+    - name: Check current user and environment
+      shell: |
+        echo "Current user: $(whoami)"
+        echo "User ID: $(id -u)"
+        echo "Group ID: $(id -g)"
+        echo "Home directory: $HOME"
+        echo "Full user info: $(id)"
+      register: user_check
+
+    - name: Display current user info
+      debug:
+        var: user_check.stdout_lines
+
+    - name: Create scripts directory if not exists
+      file:
+        path: "{{ remote_base_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if FAgent directory exists
+      stat:
+        path: "{{ remote_agent_path }}"
+      register: fagent_dir
+
+    - name: Create backup timestamp
+      set_fact:
+        backup_timestamp: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
+      when: fagent_dir.stat.exists
+
+    - name: Archive existing FAgent directory
+      archive:
+        path: "{{ remote_agent_path }}"
+        dest: "{{ remote_base_path }}/fagent_backup_{{ backup_timestamp }}.tar.gz"
+        format: gz
+      when: fagent_dir.stat.exists
+
+    - name: Confirm deletion of old files
+      pause:
+        prompt: |
+
+          WARNING: About to delete all files in {{ remote_agent_path }}
+          Backup will be saved to: {{ remote_base_path }}/fagent_backup_{{ backup_timestamp }}.tar.gz
+
+          Press ENTER to continue or Ctrl+C then 'A' to abort
+      when: fagent_dir.stat.exists and not (skip_confirmation | bool)
+
+    - name: Remove old files from FAgent directory
+      shell: "rm -rf {{ remote_agent_path }}/*"
+      when: fagent_dir.stat.exists
+
+    - name: Create FAgent directory
+      file:
+        path: "{{ remote_agent_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Upload archive to remote server
+      copy:
+        src: "{{ archive_path }}"
+        dest: "/tmp/fagent_deploy.tar.gz"
+
+    - name: Extract archive to FAgent directory
+      unarchive:
+        src: "/tmp/fagent_deploy.tar.gz"
+        dest: "{{ remote_agent_path }}"
+        remote_src: yes
+
+    - name: Remove temporary archive
+      file:
+        path: "/tmp/fagent_deploy.tar.gz"
+        state: absent
+
+    - name: Set executable permissions on scripts
+      shell: "chmod +x {{ remote_agent_path }}/*.sh {{ remote_agent_path }}/*.py"
+      ignore_errors: yes
+
+    - name: Display deployment summary
+      debug:
+        msg:
+          - "Deployment completed successfully!"
+          - "Agent path: {{ remote_agent_path }}"
+          - "Backup created: {{ remote_base_path }}/fagent_backup_{{ backup_timestamp }}.tar.gz (if existed)"
+          - "Note: Configure agent via environment variables (see CLAUDE.md)"

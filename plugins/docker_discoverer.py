@@ -290,7 +290,7 @@ class DockerDiscoverer(AbstractDiscoverer):
             containers = self.client.get_containers(all_containers=False)
 
             if not containers:
-                logger.info("Docker контейнеры не найдены")
+                logger.debug("Docker контейнеры не найдены")
                 return []
 
             server_ip = self._get_server_ip()
@@ -376,7 +376,7 @@ class DockerDiscoverer(AbstractDiscoverer):
                     logger.error(f"Ошибка обработки контейнера {container}: {e}")
                     continue
 
-            logger.info(f"Docker discoverer обнаружил {len(applications)} контейнеров")
+            logger.debug(f"Docker discoverer обнаружил {len(applications)} контейнеров")
 
         except Exception as e:
             logger.error(f"Критическая ошибка в Docker discoverer: {e}")

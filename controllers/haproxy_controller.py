@@ -167,7 +167,7 @@ class HAProxyController(AbstractController):
         Returns:
             Dict[str, Any]: Результат в стандартном формате
         """
-        logger.info(f"GET запрос: path_parts={path_parts}, query_params={query_params}")
+        logger.debug(f"GET запрос: path_parts={path_parts}, query_params={query_params}")
 
         try:
             if not path_parts:
@@ -276,7 +276,7 @@ class HAProxyController(AbstractController):
         Returns:
             Dict[str, Any]: Результат в стандартном формате
         """
-        logger.info(f"POST запрос: action_path={action_path}, body={body}")
+        logger.debug(f"POST запрос: action_path={action_path}, body={body}")
 
         try:
             # Валидация body
@@ -326,7 +326,7 @@ class HAProxyController(AbstractController):
             client = self._get_client(instance_name)
 
             # Выполняем действие
-            logger.info(f"Установка состояния: {backend_name}/{server_name} -> {action}")
+            logger.debug(f"Установка состояния: {backend_name}/{server_name} -> {action}")
             success = client.set_server_state(backend_name, server_name, action)
 
             if success:

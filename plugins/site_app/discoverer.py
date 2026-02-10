@@ -623,7 +623,7 @@ class SiteAppDiscoverer(AbstractDiscoverer):
                         f"обработано {len(apps)} приложений"
                     )
 
-            logger.info(f"Обнаружение завершено. Найдено приложений: {len(apps)}")
+            logger.debug(f"Обнаружение завершено. Найдено приложений: {len(apps)}")
 
         except Exception as e:
             logger.error(f"Критическая ошибка в процессе обнаружения: {e}", exc_info=True)

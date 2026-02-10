@@ -130,7 +130,7 @@ class DiscoveryManager:
                         failed.append(f"{plugin_name}(total_timeout)")
 
         total_duration = (time.time() - start_time) * 1000
-        logger.info(f"Discovery completed in {total_duration:.0f}ms: OK=[{', '.join(successful)}] FAILED=[{', '.join(failed) if failed else 'none'}]")
+        logger.debug(f"Discovery completed in {total_duration:.0f}ms: OK=[{', '.join(successful)}] FAILED=[{', '.join(failed) if failed else 'none'}]")
 
         return all_apps
 

@@ -215,7 +215,7 @@ class DiscoveryScheduler:
             return
 
         try:
-            logger.info("Принудительное обновление кэша")
+            logger.debug("Принудительное обновление кэша")
             self._scan()
         finally:
             self._scan_lock.release()
@@ -296,7 +296,7 @@ class DiscoveryScheduler:
             for change in changes:
                 logger.info(change)
 
-            logger.info(f"Кэш обновлён: {len(apps)} приложений за {duration_ms}ms")
+            logger.debug(f"Кэш обновлён: {len(apps)} приложений за {duration_ms}ms")
 
         except Exception as e:
             duration_ms = int((time.time() - start_time) * 1000)

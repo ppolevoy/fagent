@@ -81,7 +81,7 @@ class DockerClient:
                 }
                 result.append(container_data)
 
-            logger.info(f"Получено {len(result)} контейнеров")
+            logger.debug(f"Получено {len(result)} контейнеров")
             return result
 
         except APIError as e:

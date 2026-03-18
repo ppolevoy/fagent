@@ -81,3 +81,6 @@ fagent.log
 fagent.log
 fagent.log
 fagent.log
+fagent.log
+__pycache__/discovery_scheduler.cpython-311.pyc
+plugins/site_app/__pycache__/discoverer.cpython-311.pyc

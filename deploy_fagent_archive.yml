@@ -51,7 +51,6 @@
     - name: Create backup timestamp
       set_fact:
         backup_timestamp: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
-      when: fagent_dir.stat.exists
 
     - name: Archive existing FAgent directory
       archive:
@@ -83,17 +82,17 @@
     - name: Upload archive to remote server
       copy:
         src: "{{ archive_path }}"
-        dest: "/tmp/fagent_deploy.tar.gz"
+        dest: /tmp/fagent_deploy.tar.gz
 
     - name: Extract archive to FAgent directory
       unarchive:
-        src: "/tmp/fagent_deploy.tar.gz"
+        src: /tmp/fagent_deploy.tar.gz
         dest: "{{ remote_agent_path }}"
         remote_src: yes
 
     - name: Remove temporary archive
       file:
-        path: "/tmp/fagent_deploy.tar.gz"
+        path: /tmp/fagent_deploy.tar.gz
         state: absent
 
     - name: Set executable permissions on scripts

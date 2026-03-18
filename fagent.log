@@ -134556,3 +134556,83 @@
 2025-12-21 18:42:31,351 - __main__ - INFO - Stopping HTTP server...
 2025-12-21 18:42:36,354 - __main__ - INFO - HTTP server stopped
 2025-12-21 18:42:36,355 - __main__ - INFO - The agent has been stopped successfully.
+2026-03-17 00:49:26,451 - root - INFO - Starting Application Discovery Agent...
+2026-03-17 00:49:26,451 - __main__ - INFO - Initializing discovery manager...
+2026-03-17 00:49:26,451 - discovery - INFO - Loading plugins from: /site/app/FAgent/project/plugins
+2026-03-17 00:49:26,513 - eureka_discoverer - INFO - Eureka discoverer отключен в конфигурации
+2026-03-17 00:49:26,513 - discovery - INFO -   - Loaded discoverer: EurekaDiscoverer
+2026-03-17 00:49:26,521 - plugins.site_app.discoverer - INFO - SiteAppDiscoverer инициализирован. Платформа: linux, Режим: process, Поддерживаемые расширения: jar, war
+2026-03-17 00:49:26,521 - plugins.site_app.discoverer - WARNING - Директория дистрибутивов не существует: /site/share/htdoc
+2026-03-17 00:49:26,521 - discovery - INFO -   - Loaded discoverer: SiteAppDiscoverer
+2026-03-17 00:49:26,562 - docker_discoverer - INFO - Docker discoverer инициализирован
+2026-03-17 00:49:26,562 - discovery - INFO -   - Loaded discoverer: DockerDiscoverer
+2026-03-17 00:49:26,562 - __main__ - INFO - Plugins loaded: 3
+2026-03-17 00:49:26,563 - __main__ - INFO -   - EurekaDiscoverer
+2026-03-17 00:49:26,563 - __main__ - INFO -   - SiteAppDiscoverer
+2026-03-17 00:49:26,563 - __main__ - INFO -   - DockerDiscoverer
+2026-03-17 00:49:26,563 - discovery_scheduler - INFO - DiscoveryScheduler инициализирован: enabled=True, interval=30s, stale_threshold=60s, max_stale=300s
+2026-03-17 00:49:26,563 - discovery_scheduler - INFO - Запуск DiscoveryScheduler...
+2026-03-17 00:49:26,605 - plugins.site_app.discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2026-03-17 00:49:26,606 - discovery_scheduler - INFO - DiscoveryScheduler запущен
+2026-03-17 00:49:26,606 - __main__ - INFO - ============================================================
+2026-03-17 00:49:26,606 - __main__ - INFO - Starting HTTP server on 0.0.0.0:11011
+2026-03-17 00:49:26,606 - __main__ - INFO - ============================================================
+2026-03-17 00:49:26,606 - server - INFO - Инициализация ControlManager
+2026-03-17 00:49:26,606 - control_manager - INFO - Загрузка контроллеров из: /site/app/FAgent/project/controllers
+2026-03-17 00:49:26,607 - eureka_controller - WARNING - Eureka discovery отключен (EUREKA_DISCOVERY_ENABLED=false)
+2026-03-17 00:49:26,607 - control_manager - INFO -   - Загружен контроллер: eureka (EurekaController)
+2026-03-17 00:49:26,611 - haproxy_controller - INFO - Инициализация HAProxy клиентов
+2026-03-17 00:49:31,612 - plugins.haproxy_client - ERROR - Таймаут при выполнении команды: show info
+2026-03-17 00:49:31,612 - plugins.haproxy_client - ERROR - Ошибка получения информации о HAProxy: Таймаут при выполнении команды: show info
+2026-03-17 00:49:31,612 - plugins.haproxy_client - WARNING - Health check failed: Таймаут при выполнении команды: show info
+2026-03-17 00:49:31,612 - haproxy_controller - ERROR - HAProxy клиент 'default' не прошел health check: ipv4@192.168.1.1:7777
+2026-03-17 00:49:31,612 - haproxy_controller - WARNING - Не настроено ни одного HAProxy инстанса
+2026-03-17 00:49:31,612 - control_manager - INFO -   - Загружен контроллер: haproxy (HAProxyController)
+2026-03-17 00:49:31,612 - control_manager - INFO - Загружено контроллеров: 2
+2026-03-17 00:49:31,612 - control_manager - INFO -   - eureka
+2026-03-17 00:49:31,612 - control_manager - INFO -   - haproxy
+2026-03-17 00:49:31,613 - __main__ - ERROR - Port 11011 is already in use. Change SERVER_PORT in the configuration.
+2026-03-17 00:52:43,553 - root - INFO - Starting Application Discovery Agent...
+2026-03-17 00:52:43,553 - __main__ - INFO - Initializing discovery manager...
+2026-03-17 00:52:43,553 - discovery - INFO - Loading plugins from: /site/app/FAgent/project/plugins
+2026-03-17 00:52:43,593 - eureka_discoverer - INFO - Eureka discoverer отключен в конфигурации
+2026-03-17 00:52:43,593 - discovery - INFO -   - Loaded discoverer: EurekaDiscoverer
+2026-03-17 00:52:43,595 - plugins.site_app.discoverer - INFO - SiteAppDiscoverer инициализирован. Платформа: linux, Режим: process, Поддерживаемые расширения: jar, war
+2026-03-17 00:52:43,595 - plugins.site_app.discoverer - WARNING - Директория дистрибутивов не существует: /site/share/htdoc
+2026-03-17 00:52:43,595 - discovery - INFO -   - Loaded discoverer: SiteAppDiscoverer
+2026-03-17 00:52:43,615 - docker_discoverer - INFO - Docker discoverer инициализирован
+2026-03-17 00:52:43,615 - discovery - INFO -   - Loaded discoverer: DockerDiscoverer
+2026-03-17 00:52:43,615 - __main__ - INFO - Plugins loaded: 3
+2026-03-17 00:52:43,615 - __main__ - INFO -   - EurekaDiscoverer
+2026-03-17 00:52:43,615 - __main__ - INFO -   - SiteAppDiscoverer
+2026-03-17 00:52:43,615 - __main__ - INFO -   - DockerDiscoverer
+2026-03-17 00:52:43,615 - discovery_scheduler - INFO - DiscoveryScheduler инициализирован: enabled=True, interval=30s, stale_threshold=60s, max_stale=300s
+2026-03-17 00:52:43,615 - discovery_scheduler - INFO - Запуск DiscoveryScheduler...
+2026-03-17 00:52:43,646 - plugins.site_app.discoverer - ERROR - Требуемые директории не существуют. app_root=/site/app, htdoc_root=/site/share/htdoc
+2026-03-17 00:52:43,647 - discovery_scheduler - INFO - DiscoveryScheduler запущен
+2026-03-17 00:52:43,647 - __main__ - INFO - ============================================================
+2026-03-17 00:52:43,647 - __main__ - INFO - Starting HTTP server on 0.0.0.0:11011
+2026-03-17 00:52:43,647 - __main__ - INFO - ============================================================
+2026-03-17 00:52:43,647 - server - INFO - Инициализация ControlManager
+2026-03-17 00:52:43,647 - control_manager - INFO - Загрузка контроллеров из: /site/app/FAgent/project/controllers
+2026-03-17 00:52:43,647 - eureka_controller - WARNING - Eureka discovery отключен (EUREKA_DISCOVERY_ENABLED=false)
+2026-03-17 00:52:43,648 - control_manager - INFO -   - Загружен контроллер: eureka (EurekaController)
+2026-03-17 00:52:43,648 - haproxy_controller - INFO - Инициализация HAProxy клиентов
+2026-03-17 00:52:48,654 - plugins.haproxy_client - ERROR - Таймаут при выполнении команды: show info
+2026-03-17 00:52:48,654 - plugins.haproxy_client - ERROR - Ошибка получения информации о HAProxy: Таймаут при выполнении команды: show info
+2026-03-17 00:52:48,654 - plugins.haproxy_client - WARNING - Health check failed: Таймаут при выполнении команды: show info
+2026-03-17 00:52:48,654 - haproxy_controller - ERROR - HAProxy клиент 'default' не прошел health check: ipv4@192.168.1.1:7777
+2026-03-17 00:52:48,654 - haproxy_controller - WARNING - Не настроено ни одного HAProxy инстанса
+2026-03-17 00:52:48,654 - control_manager - INFO -   - Загружен контроллер: haproxy (HAProxyController)
+2026-03-17 00:52:48,654 - control_manager - INFO - Загружено контроллеров: 2
+2026-03-17 00:52:48,654 - control_manager - INFO -   - eureka
+2026-03-17 00:52:48,654 - control_manager - INFO -   - haproxy
+2026-03-17 00:52:48,655 - server - INFO - HTTP сервер (threading) создан на 0.0.0.0:11011
+2026-03-17 00:53:11,331 - __main__ - INFO - Received SIGTERM, beginning graceful shutdown...
+2026-03-17 00:53:11,331 - __main__ - INFO - Stopping DiscoveryScheduler...
+2026-03-17 00:53:11,331 - discovery_scheduler - INFO - Остановка DiscoveryScheduler...
+2026-03-17 00:53:11,656 - discovery_scheduler - INFO - DiscoveryScheduler остановлен
+2026-03-17 00:53:11,657 - __main__ - INFO - DiscoveryScheduler stopped
+2026-03-17 00:53:11,657 - __main__ - INFO - Stopping HTTP server...
+2026-03-17 00:53:16,657 - __main__ - INFO - HTTP server stopped
+2026-03-17 00:53:16,657 - __main__ - INFO - The agent has been stopped successfully.
